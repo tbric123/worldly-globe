@@ -7,7 +7,12 @@ from OpenGL.GLUT import *
 windowHandle = 0
 initialWidth = 640
 initialHeight = 480
+initialXPosition = 0
+initialYPosition = 0
+fov = 45
 programTitle = b"Worldly Globe"
+
+ESC = 27
 
 def startGL(width, height):
     """
@@ -30,13 +35,16 @@ def resizeWindow(width, height):
     if height == 0:
         height = 1
     
-    glViewport(0, 0, width, height)
+    glViewport(initialXPosition, initialYPosition, width, height)
     glMatrixMode(GL_PROJECTION) # Set momentarily for view
     glLoadIdentity()
-    gluPerspective(45, float(width)/float(height), 0.1, 100)
+    gluPerspective(fov, float(width)/float(height), 0.1, 100)
     glMatrixMode(GL_MODELVIEW) # Allow for rotations and scaling
 
 def drawGlobe():
+    """ 
+        Main drawing function for the program. 
+    """
     # Prepare to draw
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
@@ -51,21 +59,29 @@ def drawGlobe():
     sleep(0.01)
 
 def keyPresses(key, x, y):
+    """
+        Handle all keyboard key presses.
+    """
     key = ord(key)
     
     # Handle all keyboard controls
-    if key == 27:
+    if key == ESC:
         # ESC key - exit the program
         exitProgram()
 
 def mouseClicks(button, state, x, y):
-    
+    """
+        Handle all mouse clicks.
+    """
     # Handle all mouse button clicks
     if button == GLUT_RIGHT_BUTTON:
         if state == GLUT_DOWN:
             exitProgram()
 
 def exitProgram():
+    """ 
+        Quick function call for exiting the program.
+    """
     glutDestroyWindow(windowHandle)
     sys.exit()
     
@@ -73,13 +89,15 @@ def main():
     global windowHandle
     global initialWidth
     global initialHeight
+    global initialXPosition
+    global initialYPosition
     global programTitle
     
     # Start up GLUT
     glutInit("")
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH)
     glutInitWindowSize(initialWidth, initialHeight)
-    glutInitWindowPosition(0, 0)
+    glutInitWindowPosition(initialXPosition, initialYPosition)
     windowHandle = glutCreateWindow(programTitle)
     
     # Set up display, idle, resizing and keyboard handling functions
