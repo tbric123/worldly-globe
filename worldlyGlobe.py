@@ -1,4 +1,4 @@
-import time
+from time import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
