@@ -1,7 +1,8 @@
 class Country(object):
     
-    def __init__(self, name):
+    def __init__(self, name, continent):
         self.name = name
+        self.continent = continent
         self.tbmStats = {}
         self.gdpStats = {}
         self.co2Stats = {}
@@ -9,6 +10,9 @@ class Country(object):
     
     def getName(self):
         return self.name
+    
+    def getContinent(self):
+        return self.continent
     
     def __str__(self):
         return "Country: " + self.name
@@ -48,8 +52,9 @@ if __name__ == '__main__':
     co2Stat = WorldStatistic('CO2', 0.1, 'tonnes per capita')
     pdStat = WorldStatistic('PD', 200, 'people per km^2')
     
-    cambodia = Country("Cambodia")
+    cambodia = Country("Cambodia", "Asia")
     print(cambodia)
+    print(cambodia.getContinent())
     
     cambodia.addStat(1, '2013', tbmStat)
     print(cambodia.getStats(1)['2013'])
