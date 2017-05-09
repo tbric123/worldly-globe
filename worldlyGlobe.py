@@ -1,7 +1,11 @@
+# Other modules
 from time import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
+
+# My own modules
+from worldStatistic import WorldStatistic
 
 # Global references to window and its properties
 windowHandle = 0
@@ -109,6 +113,8 @@ def main():
     
     # Initialise OpenGL and run program
     startGL(initialWidth, initialHeight)
+    ws = WorldStatistic("TB Mortality", 35, "people/capita")
+    print(ws)
     glutMainLoop()
 
 print("Worldly Globe - press ESC or right-click window to exit program.")
