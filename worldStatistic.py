@@ -1,5 +1,7 @@
 class WorldStatistic(object):
-    
+    """
+        A statistic about a particular country/continent
+    """
     def __init__(self, name, value, units):
         self.name = name
         self.value = value
