@@ -51,6 +51,7 @@ if __name__ == '__main__':
     gdpStat = WorldStatistic('GDP', 23, '$US/capita')
     co2Stat = WorldStatistic('CO2', 0.1, 'tonnes per capita')
     pdStat = WorldStatistic('PD', 200, 'people per km^2')
+    tbmStat2 = WorldStatistic('TB', 50, 'people/capita')
     
     cambodia = Country("Cambodia", "Asia")
     print(cambodia)
@@ -76,4 +77,7 @@ if __name__ == '__main__':
     print(cambodia.getStats(2)['2013'])
     print(cambodia.getStats(3)['2013'])
     print(cambodia.getStats(4)['2013'])
-    
+    cambodia.addStat(1, '2012', tbmStat2)
+    print(cambodia.getStats(1)['2013'])
+    print(cambodia.getStats(1)['2012'])
+  
