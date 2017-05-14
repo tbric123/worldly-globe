@@ -7,7 +7,8 @@ class Country(object):
         self.gdpStats = {}
         self.co2Stats = {}
         self.pdStats = {}
-    
+        self.fillYears()
+        
     def getName(self):
         return self.name
     
@@ -43,6 +44,34 @@ class Country(object):
             return self.co2Stats
         else:
             return self.pdStats
+    
+    def getStatValue(self, statType, year):
+        stats = {}
+        
+        if statType == 1:
+            stats = self.tbmStats
+        elif statType == 2:
+            stats = self.gdpStats
+        elif statType == 3:
+            stats = self.co2Stats
+        else:
+            stats = self.pdStats
+        
+        return stats[year].getValue()
+    
+    def fillYears(self):
+        """ Loads up the year range used for
+            storing average statistic values.
+        """
+        yearsFile = open('data/years.txt', 'r')
+        years = yearsFile.readline()
+        self.yearList = years.split(' ')
+        for y in self.yearList:  
+            self.tbmStats[y] = 0
+            self.gdpStats[y] = 0
+            self.co2Stats[y] = 0
+            self.pdStats[y] = 0             
+        yearsFile.close()
         
 if __name__ == '__main__':
     from worldStatistic import WorldStatistic
