@@ -22,8 +22,6 @@ class Continent(object):
         self.yearList = []
         self.fillYears()
         
-        self.printStats()
-        
     def getName(self):
         return self.name
     

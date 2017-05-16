@@ -6,6 +6,8 @@ from OpenGL.GLUT import *
 
 # My own modules
 from worldStatistic import WorldStatistic
+from continent import Continent
+from country import Country
 
 # Global references to window and its properties
 windowHandle = 0
@@ -18,6 +20,10 @@ programTitle = b"Worldly Globe"
 
 ESC = 27
 
+# Data
+years = ['2013']
+
+continents = {}
 def startGL(width, height):
     """
         Initialise settings for background colour, depth testing and shading
@@ -88,6 +94,52 @@ def exitProgram():
     """
     glutDestroyWindow(windowHandle)
     sys.exit()
+
+def loadContinents():
+    continentFile = open('data/continents.txt')
+    continents = []
+    
+    for c in continentFile.readlines():
+        c = c.strip()
+        continent = Continent(c)
+        continents.append(continent)
+    
+    continentFile.close()
+    return continents
+
+def fillCountries(countries):
+    for y in years:
+        data = open('data/allData' + y + '.txt')
+        for c in countries:
+           c.addStat()
+        data.close()
+    return countries
+
+def loadCountries():
+    countryFile = open('data/countries.txt')
+    countries = []
+    
+    for line in countryFile.readlines():
+        line = line.strip()
+        information = line.split('|')
+        country = Country(information[0], information[1])
+        countries.append(country)
+    
+    countryFile.close()
+    #countries = fillCountries(countries)
+    
+    return countries
+
+
+def loadAllData():
+    # Load continents
+    continents = loadContinents()
+    
+    # Load countries from each continent
+    countries = loadCountries()
+    
+    return countries
+    # Fill up continents
     
 def main():
     global windowHandle
@@ -113,9 +165,9 @@ def main():
     
     # Initialise OpenGL and run program
     startGL(initialWidth, initialHeight)
-    ws = WorldStatistic("TB Mortality", 35, "people/capita")
-    print(ws)
+    cons = loadAllData()
+    print (cons)
     glutMainLoop()
-
+    
 print("Worldly Globe - press ESC or right-click window to exit program.")
 main()
