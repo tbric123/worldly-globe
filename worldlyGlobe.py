@@ -109,10 +109,11 @@ def loadContinents():
 
 def fillCountries(countries):
     for y in years:
-        data = open('data/allData' + y + '.txt')
+        dataFile = open('data/allData' + y + '.txt')
+        
         for c in countries:
            c.addStat()
-        data.close()
+        dataFile.close()
     return countries
 
 def loadCountries():
