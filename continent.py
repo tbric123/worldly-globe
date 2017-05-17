@@ -28,6 +28,9 @@ class Continent(object):
     def getCountries(self):
         return self.countries
     
+    def getCountryNames(self):
+        return [c.getName() for c in self.getCountries()]
+    
     def addCountry(self, country):
         
         self.countries.append(country)
@@ -87,48 +90,6 @@ class Continent(object):
         print("Total CO2:", self.totalCO2)
         print("Avg PD:", self.averagePD)
         print("Total PD:", self.totalPD)
-        
-if __name__ == '__main__':
-    
-    # Intro
-    years = ['2013', '2012', '2011', '2010']
-    types = ['TB', 'GDP', 'CO2', 'PD']
-    units = ['people/capita', '$US/capita', 'tonnes/capita', 'people/km^2']
-    
-    
-    tb1 = [0.1, 0.2, 0.3, 0.4]
-    tb2 = [0.05, 0.06, 0.07, 0.08]
-    gdp1 = [50000, 40000, 30000, 20000]
-    gdp2 = [60000, 55000, 50000, 45000]
-    co21 = [0.01, 0.02, 0.03, 0.04]
-    co22 = [0.05, 0.04, 0.04, 0.03]
-    pd1 = [4000, 3000, 2000, 1000]
-    pd2 = [5000, 4000, 3000, 2000]
-    
-    fStats = [tb1, gdp1, co21, pd1]
-    gStats = [tb2, gdp2, co22, pd2]
-    
-    # Form continent
-    europe = Continent('Europe')
-    
-    # Form countries
-    france = Country('France', 'Europe')
-    germany = Country('Germany', 'Europe')
-    
-    for i in range(len(years)):
-        for j in range(len(years)):
-            france.addStat(i + 1, years[j], WorldStatistic(types[i], fStats[i][j], 
-                           units[i]))
-            germany.addStat(i + 1, years[j], WorldStatistic(types[i], gStats[i][j], 
-                           units[i]))
-    print("------------------")
-    europe.addCountry(france)
-    print("------------------")
-    europe.printStats()
-    print("------------------")
-    europe.addCountry(germany)
-    europe.printStats()
-    print("------------------")
     
     
     

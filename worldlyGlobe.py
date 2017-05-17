@@ -21,9 +21,10 @@ programTitle = b"Worldly Globe"
 ESC = 27
 
 # Data
-years = ['2013']
+years = ['2013', '2012', '2011', '2010', '2009', '2008', '2007', '2006', '2005', '2004']
+continentNames = ["Africa", "Asia", "Europe", "North America", "Oceania", "South America"]
+allData = []
 
-continents = {}
 def startGL(width, height):
     """
         Initialise settings for background colour, depth testing and shading
@@ -108,12 +109,25 @@ def loadContinents():
     return continents
 
 def fillCountries(countries):
+    print("Filling up each country with statistics...")
+    log = open("data/log.txt", 'w')
     for y in years:
         dataFile = open('data/allData' + y + '.txt')
-        
+        dataContents = dataFile.readlines()
+        countryCount = 0
         for c in countries:
-           c.addStat()
-        dataFile.close()
+           data = dataContents[countryCount].split("|")
+           c.addStat(1, y, float(data[0]))
+           c.addStat(2, y, float(data[1]))
+           c.addStat(3, y, float(data[2]))
+           c.addStat(4, y, float(data[3]))
+           log.write(str(y) +  " TB stat for " + c.getName() + ": " + str(c.getStatValue(1, y)) + "\n")
+           log.write(str(y) + " GDP stat for " + c.getName() + ": " + str(c.getStatValue(2, y)) + "\n")
+           log.write(str(y) + " CO2 stat for " + c.getName() + ": " + str(c.getStatValue(3, y)) + "\n")
+           log.write(str(y) + " PD stat for " + c.getName() + ": " + str(c.getStatValue(4, y)) + "\n")
+           countryCount += 1
+    print("Countries filled!")
+    log.close()
     return countries
 
 def loadCountries():
@@ -127,21 +141,49 @@ def loadCountries():
         countries.append(country)
     
     countryFile.close()
-    #countries = fillCountries(countries)
+    countries = fillCountries(countries)
     
     return countries
 
 
+def findContinent(continentName, continentNames, country):
+    """
+        Use binary search to find a particular country's
+        continent
+    """
+    cNameStart = 0
+    cNameEnd = len(continentNames)
+    
+    while (cNameStart != cNameEnd):
+        middleIndex = int(cNameEnd/2)
+        middleResult = continentNames[middleIndex]
+        continentFromCountry = country.getContinent()
+        if (continentFromCountry == middleResult):
+            return True
+        elif (country.getContinent):
+            cNameEnd -= middleIndex
+        else:
+            cNameStart += middleIndex
+        
+    return False
+
 def loadAllData():
+    continentMap = {}
+    
     # Load continents
     continents = loadContinents()
     
-    # Load countries from each continent
+    # Load countries and their data
     countries = loadCountries()
     
-    return countries
-    # Fill up continents
-    
+    # Add each country to 
+    for co in continents:
+        for c in countries:
+            if c.getContinent() == co.getName():
+                co.addCountry(c)
+
+    return continents
+ 
 def main():
     global windowHandle
     global initialWidth
@@ -149,6 +191,7 @@ def main():
     global initialXPosition
     global initialYPosition
     global programTitle
+    global allData
     
     # Start up GLUT
     glutInit("")
@@ -164,11 +207,15 @@ def main():
     glutKeyboardFunc(keyPresses)
     glutMouseFunc(mouseClicks)
     
-    # Initialise OpenGL and run program
     startGL(initialWidth, initialHeight)
-    cons = loadAllData()
-    print (cons)
+    # Initialise OpenGL and run program
+    print("Loading data...")
+    allData = loadAllData()
+    for c in allData:
+        c.printStats()
+    print("Done.")
+    print("Worldly Globe - press ESC or right-click window to exit program.")
+        
     glutMainLoop()
     
-print("Worldly Globe - press ESC or right-click window to exit program.")
 main()
