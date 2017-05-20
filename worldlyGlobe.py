@@ -145,28 +145,6 @@ def loadCountries():
     
     return countries
 
-
-def findContinent(continentName, continentNames, country):
-    """
-        Use binary search to find a particular country's
-        continent
-    """
-    cNameStart = 0
-    cNameEnd = len(continentNames)
-    
-    while (cNameStart != cNameEnd):
-        middleIndex = int(cNameEnd/2)
-        middleResult = continentNames[middleIndex]
-        continentFromCountry = country.getContinent()
-        if (continentFromCountry == middleResult):
-            return True
-        elif (country.getContinent):
-            cNameEnd -= middleIndex
-        else:
-            cNameStart += middleIndex
-        
-    return False
-
 def loadAllData():
     continentMap = {}
     
