@@ -211,8 +211,7 @@ def main():
     # Initialise OpenGL and run program
     print("Loading data...")
     allData = loadAllData()
-    for c in allData:
-        c.printStats()
+    print(allData)
     print("Done.")
     print("Worldly Globe - press ESC or right-click window to exit program.")
         
