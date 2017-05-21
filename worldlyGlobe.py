@@ -5,7 +5,7 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 
 # My own modules
-from worldStatistic import WorldStatistic
+#from worldStatistic import WorldStatistic
 from continent import Continent
 from country import Country
 
@@ -25,7 +25,11 @@ years = ['2013', '2012', '2011', '2010', '2009', '2008', '2007', '2006', '2005',
 continentNames = ["Africa", "Asia", "Europe", "North America", "Oceania", "South America"]
 allData = []
 
+#
+# pyOpenGL SETUP
+#
 def startGL(width, height):
+
     """
         Initialise settings for background colour, depth testing and shading
         models.
@@ -47,28 +51,14 @@ def resizeWindow(width, height):
         height = 1
     
     glViewport(initialXPosition, initialYPosition, width, height)
-    glMatrixMode(GL_PROJECTION) # Set momentarily for view
+    glMatrixMode(GL_PROJECTION) 
     glLoadIdentity()
     gluPerspective(fov, float(width)/float(height), 0.1, 100)
-    glMatrixMode(GL_MODELVIEW) # Allow for rotations and scaling
+    glMatrixMode(GL_MODELVIEW)
 
-def drawGlobe():
-    """ 
-        Main drawing function for the program. 
-    """
-    # Prepare to draw
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    glLoadIdentity()
-    glTranslatef(-1, 0, -6)
-    
-    # Start drawing
-    glColor3f(0, 0, 1)
-    glutSolidSphere(1.5, 100, 100)
-    
-    # Make drawing appear on screen
-    glutSwapBuffers()
-    sleep(0.01)
-
+#
+# USER INPUT HANDLING
+#
 def keyPresses(key, x, y):
     """
         Handle all keyboard key presses.
@@ -89,6 +79,29 @@ def mouseClicks(button, state, x, y):
         if state == GLUT_DOWN:
             exitProgram()
 
+#
+# DRAWING AND TEXTURING ABILITIES
+#
+def drawGlobe():
+    """ 
+        Main drawing function for the program. 
+    """
+    # Prepare to draw
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    glLoadIdentity()
+    glTranslatef(-1, 0, -6)
+    
+    # Start drawing
+    glColor3f(0, 0, 1)
+    glutSolidSphere(1.5, 100, 100)
+    
+    # Make drawing appear on screen
+    glutSwapBuffers()
+    sleep(0.01)
+
+#
+# PROGRAM FEATURES
+#    
 def exitProgram():
     """ 
         Quick function call for exiting the program.
@@ -96,72 +109,15 @@ def exitProgram():
     glutDestroyWindow(windowHandle)
     sys.exit()
 
-def loadContinents():
-    continentFile = open('data/continents.txt')
-    continents = []
-    
-    for c in continentFile.readlines():
-        c = c.strip()
-        continent = Continent(c)
-        continents.append(continent)
-    
-    continentFile.close()
-    return continents
+#
+# DATA INITIALISATION
+#
+def initialiseImages():
+    pass
 
-def fillCountries(countries):
-    print("Filling up each country with statistics...")
-    log = open("data/log.txt", 'w')
-    for y in years:
-        dataFile = open('data/allData' + y + '.txt')
-        dataContents = dataFile.readlines()
-        countryCount = 0
-        for c in countries:
-           data = dataContents[countryCount].split("|")
-           c.addStat(1, y, float(data[0]))
-           c.addStat(2, y, float(data[1]))
-           c.addStat(3, y, float(data[2]))
-           c.addStat(4, y, float(data[3]))
-           log.write(str(y) +  " TB stat for " + c.getName() + ": " + str(c.getStatValue(1, y)) + "\n")
-           log.write(str(y) + " GDP stat for " + c.getName() + ": " + str(c.getStatValue(2, y)) + "\n")
-           log.write(str(y) + " CO2 stat for " + c.getName() + ": " + str(c.getStatValue(3, y)) + "\n")
-           log.write(str(y) + " PD stat for " + c.getName() + ": " + str(c.getStatValue(4, y)) + "\n")
-           countryCount += 1
-    print("Countries filled!")
-    log.close()
-    return countries
-
-def loadCountries():
-    countryFile = open('data/countries.txt')
-    countries = []
-    
-    for line in countryFile.readlines():
-        line = line.strip()
-        information = line.split('|')
-        country = Country(information[0], information[1])
-        countries.append(country)
-    
-    countryFile.close()
-    countries = fillCountries(countries)
-    
-    return countries
-
-def loadAllData():
-    continentMap = {}
-    
-    # Load continents
-    continents = loadContinents()
-    
-    # Load countries and their data
-    countries = loadCountries()
-    
-    # Add each country to 
-    for co in continents:
-        for c in countries:
-            if c.getContinent() == co.getName():
-                co.addCountry(c)
-
-    return continents
- 
+#
+# PROGRAM STARTING POINT
+# 
 def main():
     global windowHandle
     global initialWidth
@@ -172,27 +128,32 @@ def main():
     global allData
     
     # Start up GLUT
-    glutInit("")
-    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH)
-    glutInitWindowSize(initialWidth, initialHeight)
-    glutInitWindowPosition(initialXPosition, initialYPosition)
-    windowHandle = glutCreateWindow(programTitle)
-    
-    # Set up display, idle, resizing and keyboard handling functions
-    glutDisplayFunc(drawGlobe)
-    glutIdleFunc(drawGlobe)
-    glutReshapeFunc(resizeWindow)
-    glutKeyboardFunc(keyPresses)
-    glutMouseFunc(mouseClicks)
-    
-    startGL(initialWidth, initialHeight)
-    # Initialise OpenGL and run program
-    print("Loading data...")
-    allData = loadAllData()
-    print(allData)
-    print("Done.")
-    print("Worldly Globe - press ESC or right-click window to exit program.")
+    try:
+        print("Loading data...")
+        allData = Continent.generateFullContinentList()
+        print(allData)
+        print("Done.")
         
-    glutMainLoop()
-    
+        glutInit("")
+        glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH)
+        glutInitWindowSize(initialWidth, initialHeight)
+        glutInitWindowPosition(initialXPosition, initialYPosition)
+        windowHandle = glutCreateWindow(programTitle)
+        
+        # Set up display, idle, resizing and keyboard handling functions
+        glutDisplayFunc(drawGlobe)
+        glutIdleFunc(drawGlobe)
+        glutReshapeFunc(resizeWindow)
+        glutKeyboardFunc(keyPresses)
+        glutMouseFunc(mouseClicks)
+        
+        # Initialise OpenGL and run program 
+        startGL(initialWidth, initialHeight)
+        print("Opening window...")
+        print("Worldly Globe - press ESC or right-click window to exit program.")  
+        glutMainLoop()
+    except:
+        print("Program couldn't start:")
+        return 
+
 main()
