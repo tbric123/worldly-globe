@@ -18,8 +18,10 @@ initialYPosition = 0
 fov = 45
 programTitle = b"Worldly Globe"
 
-# Scaling and rotating
+# Scaling and rotating (tilting and panning)
 scaleFactor = 0
+tiltAmount = 0
+panAmount = 0
 
 # Limits enforced on zooming in and out
 scalingUpperLimit = 4
@@ -250,6 +252,7 @@ def keyPresses(key, x, y):
         Handle all keyboard key presses.
     """
     
+    global scaleFactor, scale, scalingUpperLimit, scalingLowerLimit
     global selectedDataType, selectedYear, selectedYearIndex
     key = ord(key)
     
@@ -298,14 +301,7 @@ def keyPresses(key, x, y):
         selectedYear = years[selectedYearIndex]
         print("Year changed to", selectedYear)
         refreshDrawing()
-
-def zoomControls(key, x, y):
-    global scaleFactor, scale, scalingUpperLimit, scalingLowerLimit
-    """
-        Key handling function for zooming in and out. A separate function is
-        needed to read the arrow keys (or any other non-ASCII characters).
-    """
-    if key == GLUT_KEY_UP:
+    elif key == ord('.') or key == ord('>'):
         # Zoom in
         scale += 1
         print("Attempting to zoom in")
@@ -318,7 +314,8 @@ def zoomControls(key, x, y):
             scale = scalingUpperLimit
             print("Can't zoom in any further!")
         refreshDisplay()
-    elif key == GLUT_KEY_DOWN:
+    elif key == ord(',') or key == ord('<'):
+        # Zoom out
         scale -= 1
         print("Attempting to zoom out")
         print("Scale:", scale)
@@ -330,7 +327,30 @@ def zoomControls(key, x, y):
             scale = scalingLowerLimit
             print("Can't zoom out any further!")
         refreshDisplay()
-            
+        
+        
+def rotationControls(key, x, y):
+    global tiltAmount, panAmount
+    """
+        Key handling function for rotating. A separate function is
+        needed to read the arrow keys (or any other non-ASCII characters).
+    """
+    if key == GLUT_KEY_UP:
+        # Tilt up by 10 degrees
+        tiltAmount += 10
+        refreshDisplay()
+    elif key == GLUT_KEY_DOWN:
+        # Tilt down by 10 degrees
+        tiltAmount -= 10
+        refreshDisplay()
+    elif key == GLUT_KEY_LEFT:
+        # Pan to right by 10 degrees
+        panAmount += 10
+        refreshDisplay()
+    elif key == GLUT_KEY_RIGHT:
+        # Pan to left by 10 degrees
+        panAmount -= 10
+        refreshDisplay()
         
 def mouseClicks(button, state, x, y):
     """
@@ -405,6 +425,8 @@ def drawDisplay():
     glLoadIdentity()
     glTranslatef(-1, 0, -6)
     glTranslate(0, 0, scaleFactor) # Zooming in and out
+    glRotated(tiltAmount, 1, 0, 0)
+    glRotated(panAmount, 0, 1, 0)
     glEnable(GL_TEXTURE_2D)
     
     # Start drawing the cube
@@ -460,7 +482,7 @@ def main():
     glutReshapeFunc(resizeWindow)
     glutKeyboardFunc(keyPresses)
     glutMouseFunc(mouseClicks)
-    glutSpecialFunc(zoomControls) # For non-ASCII keys (i.e. arrow keys)
+    glutSpecialFunc(rotationControls) # For non-ASCII keys (i.e. arrow keys)
     
     # Initialise OpenGL and run program 
     startGL(initialWidth, initialHeight)
