@@ -22,6 +22,8 @@ programTitle = b"Worldly Globe"
 scaleFactor = 0
 tiltAmount = 0
 panAmount = 0
+TILT = 10
+PAN = 10
 
 # Limits enforced on zooming in and out
 scalingUpperLimit = 4
@@ -67,10 +69,20 @@ DATA_LOADING = "Loading data..."
 TEXTURES_LOADING = "Loading textures..."
 DONE = "Done."
 EXITING = "Exiting..."
+START_ERROR = "Program couldn't start."
+WINDOW_OPEN = "Opening window..."
+WELCOME = "Worldly Cube - press ESC or right-click window to exit program."
 DISPLAY_TB = "Displaying average TB."
 DISPLAY_GDP = "Displaying average GDP."
 DISPLAY_CO2 = "Displaying average CO2."
 DISPLAY_PD = "Displaying average PD."
+YEAR_CHANGE = "Year changed to"
+ZOOM_IN = "Zoomed in."
+ZOOM_OUT = "Zoomed out."
+ZOOM_IN_ATTEMPT = "Attempting to zoom in..."
+ZOOM_OUT_ATTEMPT = "Attempting to zoom out..."
+ZOOM_IN_LIMIT = "Can't zoom in any further!"
+ZOOM_OUT_LIMIT = "Can't zoom out any further!"
 
 #
 # IMAGE AND TEXTURE GENERATION
@@ -288,7 +300,7 @@ def keyPresses(key, x, y):
             selectedYearIndex = 0
         
         selectedYear = years[selectedYearIndex]
-        print("Year changed to", selectedYear)
+        print(YEAR_CHANGE, selectedYear)
         refreshDrawing()
     elif key == ord('e') or key == ord('E'):
         # Increase year displayed by one year
@@ -299,35 +311,30 @@ def keyPresses(key, x, y):
             selectedYearIndex = len(years) - 1  
                    
         selectedYear = years[selectedYearIndex]
-        print("Year changed to", selectedYear)
+        print(YEAR_CHANGE, selectedYear)
         refreshDrawing()
     elif key == ord('.') or key == ord('>'):
         # Zoom in
         scale += 1
-        print("Attempting to zoom in")
-        print("Scale:", scale)
+        print(ZOOM_IN_ATTEMPT)
         if scale <= scalingUpperLimit:
             scaleFactor += 1
-            print("Zoom in")
-            refreshDisplay()
+            print(ZOOM_IN)
         else:
             scale = scalingUpperLimit
-            print("Can't zoom in any further!")
+            print(ZOOM_IN_LIMIT)
         refreshDisplay()
     elif key == ord(',') or key == ord('<'):
         # Zoom out
         scale -= 1
-        print("Attempting to zoom out")
-        print("Scale:", scale)
+        print(ZOOM_OUT_ATTEMPT)
         if scale >= scalingLowerLimit:
             scaleFactor -= 1
-            print("Zoom out")
-            refreshDisplay()
+            print(ZOOM_OUT)
         else:
             scale = scalingLowerLimit
-            print("Can't zoom out any further!")
+            print(ZOOM_OUT_LIMIT)
         refreshDisplay()
-        
         
 def rotationControls(key, x, y):
     global tiltAmount, panAmount
@@ -337,19 +344,19 @@ def rotationControls(key, x, y):
     """
     if key == GLUT_KEY_UP:
         # Tilt up by 10 degrees
-        tiltAmount += 10
+        tiltAmount += TILT
         refreshDisplay()
     elif key == GLUT_KEY_DOWN:
         # Tilt down by 10 degrees
-        tiltAmount -= 10
+        tiltAmount -= TILT
         refreshDisplay()
     elif key == GLUT_KEY_LEFT:
         # Pan to right by 10 degrees
-        panAmount += 10
+        panAmount += PAN
         refreshDisplay()
     elif key == GLUT_KEY_RIGHT:
         # Pan to left by 10 degrees
-        panAmount -= 10
+        panAmount -= PAN
         refreshDisplay()
         
 def mouseClicks(button, state, x, y):
@@ -425,8 +432,8 @@ def drawDisplay():
     glLoadIdentity()
     glTranslatef(-1, 0, -6)
     glTranslate(0, 0, scaleFactor) # Zooming in and out
-    glRotated(tiltAmount, 1, 0, 0)
-    glRotated(panAmount, 0, 1, 0)
+    glRotated(tiltAmount, 1, 0, 0) # Tilting
+    glRotated(panAmount, 0, 1, 0) # Panning
     glEnable(GL_TEXTURE_2D)
     
     # Start drawing the cube
@@ -436,7 +443,7 @@ def drawDisplay():
     
     # Make drawing appear on screen
     glutSwapBuffers()
-    #scaleFactor = 0
+
 #
 # PROGRAM FEATURES
 #    
@@ -454,6 +461,7 @@ def refreshDrawing():
     """
     makeTextureSelection()
     drawDisplay()
+    
 #
 # PROGRAM STARTING POINT
 # 
@@ -464,33 +472,30 @@ def main():
     global initialXPosition
     global initialYPosition
     global programTitle
-    global allData
     
-#    try:
+    try: 
+        # Start up GLUT
+        glutInit("")
+        glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH)
+        glutInitWindowSize(initialWidth, initialHeight)
+        glutInitWindowPosition(initialXPosition, initialYPosition)
+        windowHandle = glutCreateWindow(programTitle)
     
-    
-    # Start up GLUT
-    glutInit("")
-    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH)
-    glutInitWindowSize(initialWidth, initialHeight)
-    glutInitWindowPosition(initialXPosition, initialYPosition)
-    windowHandle = glutCreateWindow(programTitle)
-
-    # Set up display, idle, resizing and mouse and keyboard handling functions
-    glutDisplayFunc(drawDisplay)
-    glutIdleFunc(drawDisplay)
-    glutReshapeFunc(resizeWindow)
-    glutKeyboardFunc(keyPresses)
-    glutMouseFunc(mouseClicks)
-    glutSpecialFunc(rotationControls) # For non-ASCII keys (i.e. arrow keys)
+        # Set up display, idle, resizing and mouse and keyboard handling functions
+        glutDisplayFunc(drawDisplay)
+        glutIdleFunc(drawDisplay)
+        glutReshapeFunc(resizeWindow)
+        glutKeyboardFunc(keyPresses)
+        glutMouseFunc(mouseClicks)
+        glutSpecialFunc(rotationControls) # For non-ASCII keys (i.e. arrow keys)
+    except:
+        print(START_ERROR)
+        return 
     
     # Initialise OpenGL and run program 
     startGL(initialWidth, initialHeight)
-    print("Opening window...")
-    print("Worldly Globe - press ESC or right-click window to exit program.")  
+    print(WINDOW_OPEN)
+    print(WELCOME)
     glutMainLoop()
-#    except Exception:
-#        print("Program couldn't start!")
-#        return 
-
+    
 main()
