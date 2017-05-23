@@ -32,8 +32,9 @@ texturesCO2 = {}
 texturesPD = {}
 
 # Selections within program
-selectedTextures = 0
-selectedYear = 0
+selectedDataType = "TB"
+selectedYear = "2013"
+selectedContinentTextureIDs = [0, 0, 0, 0, 0, 0]
 
 #
 # IMAGE AND TEXTURE GENERATION
@@ -99,12 +100,33 @@ def getTextureImageDataPair(dataSource, continent, year):
     return textureImagePair
 
 #
+# Make a selection of textures to display based on year and data type
+#
+def makeTextureSelection():
+    global selectedDataType, selectedYear, selectedContinentTextureIDs
+    
+    if selectedDataType == "TB":
+        dataSource = texturesTB
+    elif selectedDataType == "GDP":
+        dataSource = texturesGDP
+    elif selectedDataType == "CO2":
+        dataSource = texturesCO2
+    else:
+        dataSource = texturesPD
+    
+    i = 0
+    for c in continentNames:
+        textureData = getTextureImageDataPair(dataSource, c, selectedYear)
+        textureID = textureData[0]
+        selectedContinentTextureIDs[i] = textureID
+        i += 1
+    
+#
 # Handle the creation of textures from a particular dictionary
 # of texture IDs and images based on a given statistical data type (TB, GDP,
 # CO2, PD).
 #
-def initialiseTexturesFromSource(dataSource):
-    
+def initialiseTexturesFromSource(dataSource):   
     for c in continentNames:
         for y in years:
             textureImagePair = getTextureImageDataPair(dataSource, c, y)
@@ -128,15 +150,23 @@ def initialiseAllTextures():
     initialiseTexturesFromSource(texturesGDP)
     initialiseTexturesFromSource(texturesCO2)
     initialiseTexturesFromSource(texturesPD)    
+    
+    makeTextureSelection()
 #
 # pyOpenGL SETUP
 #
 def startGL(width, height):
-
+    
     """
-        Initialise settings for background colour, depth testing, blending 
+        Initialise continent data and settings for background colour, depth testing, blending 
         and shading models.
     """
+    
+    # Load all continent numerical data
+    print("Loading data...")
+    allData = Continent.generateFullContinentList()
+    print("Done.")
+    
     # Load all textures
     print("Loading texture images...")
     loadTextureImages()
@@ -178,7 +208,29 @@ def keyPresses(key, x, y):
     if key == ESC:
         # ESC key - exit the program
         exitProgram()
-
+    elif key == ord('a') or key == ord('A'):
+        # Display average TB on the cube
+        print("Displaying average TB")
+        selectedDataType = "TB"
+        makeTextureSelection()
+        drawGlobe()
+    elif key == ord('s') or key == ord('S'):
+        # Display average GDP on the cube
+        print("Displaying average GDP")
+        selectedDataType = "GDP"
+        makeTextureSelection()
+        drawGlobe()
+    elif key == ord('d') or key == ord('D'):
+        print("Displaying average CO2")
+        selectedDataType = "CO2"
+        makeTextureSelection()
+        drawGlobe()
+    elif key == ord('f') or key == ord('F'):
+        print("Displaying average PD")
+        selectedDataType = "PD"
+        makeTextureSelection()
+        drawGlobe()
+        
 def mouseClicks(button, state, x, y):
     """
         Handle all mouse clicks.
@@ -230,33 +282,30 @@ def main():
     global programTitle
     global allData
     
-    try:
-        # Load all continent numerical data
-        print("Loading data...")
-        allData = Continent.generateFullContinentList()
-        print("Done.")
-        
-        # Start up GLUT
-        glutInit("")
-        glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH)
-        glutInitWindowSize(initialWidth, initialHeight)
-        glutInitWindowPosition(initialXPosition, initialYPosition)
-        windowHandle = glutCreateWindow(programTitle)
+#    try:
+    
+    
+    # Start up GLUT
+    glutInit("")
+    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH)
+    glutInitWindowSize(initialWidth, initialHeight)
+    glutInitWindowPosition(initialXPosition, initialYPosition)
+    windowHandle = glutCreateWindow(programTitle)
 
-        # Set up display, idle, resizing and keyboard handling functions
-        glutDisplayFunc(drawGlobe)
-        glutIdleFunc(drawGlobe)
-        glutReshapeFunc(resizeWindow)
-        glutKeyboardFunc(keyPresses)
-        glutMouseFunc(mouseClicks)
-        
-        # Initialise OpenGL and run program 
-        startGL(initialWidth, initialHeight)
-        print("Opening window...")
-        print("Worldly Globe - press ESC or right-click window to exit program.")  
-        glutMainLoop()
-    except Exception:
-        print("Program couldn't start!")
-        return 
+    # Set up display, idle, resizing and keyboard handling functions
+    glutDisplayFunc(drawGlobe)
+    glutIdleFunc(drawGlobe)
+    glutReshapeFunc(resizeWindow)
+    glutKeyboardFunc(keyPresses)
+    glutMouseFunc(mouseClicks)
+    
+    # Initialise OpenGL and run program 
+    startGL(initialWidth, initialHeight)
+    print("Opening window...")
+    print("Worldly Globe - press ESC or right-click window to exit program.")  
+    glutMainLoop()
+#    except Exception:
+#        print("Program couldn't start!")
+#        return 
 
 main()
