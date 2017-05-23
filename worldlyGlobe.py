@@ -35,7 +35,13 @@ texturesPD = {}
 selectedTextures = 0
 selectedYear = 0
 
+#
+# IMAGE AND TEXTURE GENERATION
+#
+
+#
 # Generate a single texture ID and image pair
+#
 def getTextureImagePair(imageName):
 
     textureImage = Image()
@@ -79,22 +85,70 @@ def loadTextureImages():
         texturesGDP[c] = continentTexDataGDP
         texturesCO2[c] = continentTexDataCO2
         texturesPD[c] = continentTexDataPD
+
+#
+# Allows for easy obtaining of a particular texture ID and image
+# based on a continent and a year, as a tuple.
+# 0 - texture ID
+# 1 - texture image
+#
+def getTextureImageDataPair(dataSource, continent, year):
+    textureData = dataSource[continent]
+    textureImagePair = textureData[0][year]
+    
+    return textureImagePair
+
+#
+# Handle the creation of textures from a particular dictionary
+# of texture IDs and images based on a given statistical data type (TB, GDP,
+# CO2, PD).
+#
+def initialiseTexturesFromSource(dataSource):
+    
+    for c in continentNames:
+        for y in years:
+            textureImagePair = getTextureImageDataPair(dataSource, c, y)
+            textureID = textureImagePair[0]
+            textureImage = textureImagePair[1]
             
+            glBindTexture(GL_TEXTURE_2D, textureID)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+            glTexImage2D(GL_TEXTURE_2D, 0, 4, textureImage.sizeX, 
+                         textureImage.sizeY, 0, GL_RGBA, GL_UNSIGNED_BYTE, 
+                         textureImage.data)
+
+#
+# Create textures from all texture data sources
+#
+def initialiseAllTextures():
+    initialiseTexturesFromSource(texturesTB)      
+    initialiseTexturesFromSource(texturesGDP)
+    initialiseTexturesFromSource(texturesCO2)
+    initialiseTexturesFromSource(texturesPD)    
 #
 # pyOpenGL SETUP
 #
 def startGL(width, height):
 
     """
-        Initialise settings for background colour, depth testing and shading
-        models.
+        Initialise settings for background colour, depth testing, blending 
+        and shading models.
     """
+    # Load all textures
+    print("Loading texture images...")
+    loadTextureImages()
+    initialiseAllTextures()
+    print("Done.")
+    
     glClearColor(0, 0, 0, 0)
     glClearDepth(1)
     glDepthFunc(GL_LESS)
     glEnable(GL_DEPTH_TEST)
     glShadeModel(GL_SMOOTH)
-    
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     resizeWindow(width, height)
 
 def resizeWindow(width, height):
@@ -135,7 +189,7 @@ def mouseClicks(button, state, x, y):
             exitProgram()
 
 #
-# DRAWING AND TEXTURING ABILITIES
+# DRAWING ABILITIES
 #
 def drawGlobe():
     """ 
@@ -165,12 +219,6 @@ def exitProgram():
     sys.exit()
 
 #
-# DATA INITIALISATION
-#
-def initialiseImages():
-    pass
-
-#
 # PROGRAM STARTING POINT
 # 
 def main():
@@ -194,12 +242,7 @@ def main():
         glutInitWindowSize(initialWidth, initialHeight)
         glutInitWindowPosition(initialXPosition, initialYPosition)
         windowHandle = glutCreateWindow(programTitle)
-        
-        # Load all textures
-        print("Loading texture images...")
-        loadTextureImages()
-        print("Done.")
-       
+
         # Set up display, idle, resizing and keyboard handling functions
         glutDisplayFunc(drawGlobe)
         glutIdleFunc(drawGlobe)
@@ -212,8 +255,8 @@ def main():
         print("Opening window...")
         print("Worldly Globe - press ESC or right-click window to exit program.")  
         glutMainLoop()
-    except:
-        print("Program couldn't start! " + st)
+    except Exception:
+        print("Program couldn't start!")
         return 
 
 main()
