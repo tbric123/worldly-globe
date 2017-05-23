@@ -3,12 +3,11 @@ from time import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
+from PIL.Image import *
 
 # My own modules
-#from worldStatistic import WorldStatistic
 from continent import Continent
 from country import Country
-from PIL.Image import *
 
 # Global references to window and its properties
 windowHandle = 0
@@ -31,21 +30,44 @@ texturesGDP = {}
 texturesCO2 = {}
 texturesPD = {}
 
-# Data 
+# Image file handling
+BMP = ".bmp"
+MAP_LOCATION = "maps/"
+
+# Data Types
+TB = "TB"
+GDP = "GDP"
+CO2 = "CO2"
+PD = "PD"
+
+# Default selections when program starts
+defaultDataType = TB
+defaultYear = years[0]
+
 # Selections within program
-selectedDataType = "TB"
-selectedYear = "2013"
+selectedDataType = defaultDataType
+selectedYear = defaultYear
 selectedContinentTextureIDs = [0, 0, 0, 0, 0, 0]
+
+# Console Messages
+IMAGE_NOT_FOUND = "An image couldn't be loaded - program will exit."
+DATA_LOADING = "Loading data..."
+TEXTURES_LOADING = "Loading textures..."
+DONE = "Done."
+EXITING = "Exiting..."
+DISPLAY_TB = "Displaying average TB."
+DISPLAY_GDP = "Displaying average GDP."
+DISPLAY_CO2 = "Displaying average CO2."
+DISPLAY_PD = "Displaying average PD."
 
 #
 # IMAGE AND TEXTURE GENERATION
 #
 
-#
-# Generate a single texture ID and image pair
-#
 def getTextureImagePair(imageName):
-
+    """
+        Generate a single texture ID and image pair.
+    """
     textureImage = Image()
     textureID = glGenTextures(1)
     try:
@@ -54,22 +76,28 @@ def getTextureImagePair(imageName):
         textureImage.sizeY = imageFile.size[1]
         textureImage.data = imageFile.tobytes("raw", "RGBX", 0, -1)
     except:
-        print("An image couldn't be loaded - program will exit.")
+        print(IMAGE_NOT_FOUND)
         sys.exit()
     
     return (textureID, textureImage)
 
 def addToContinentData(continent, year, dataType, continentTexData):
-    imageFilename = "maps/" + continent + dataType + year + ".bmp"
+    """
+        Helper method to assist in loading texture images by adding texture
+        data to a given texture data storage area.
+    """
+    
+    imageFilename = MAP_LOCATION + continent + dataType + year + BMP
     textureData = getTextureImagePair(imageFilename)
     continentTexData[0][year] = textureData
 
-#
-# Load all necessary texture images.  
-# Storage format: Key - continent name; Value: dictionary (key - year, 
-# value - texture ID and image pair)
-#
 def loadTextureImages():
+    """
+       Load all necessary texture images.  
+       Storage format: Key - continent name; Value: dictionary (key - year, 
+       value - texture ID and image pair)
+    """
+    
     global texturesTB, texturesGDP, texturesCO2, texturesPD
 
     for c in continentNames:
@@ -79,42 +107,46 @@ def loadTextureImages():
         continentTexDataPD = [{}]
         
         for y in years:
-            addToContinentData(c, y, "TB", continentTexDataTB)
-            addToContinentData(c, y, "GDP", continentTexDataGDP)
-            addToContinentData(c, y, "CO2", continentTexDataCO2)
-            addToContinentData(c, y, "PD", continentTexDataPD)
+            addToContinentData(c, y, TB, continentTexDataTB)
+            addToContinentData(c, y, GDP, continentTexDataGDP)
+            addToContinentData(c, y, CO2, continentTexDataCO2)
+            addToContinentData(c, y, PD, continentTexDataPD)
         texturesTB[c] = continentTexDataTB
         texturesGDP[c] = continentTexDataGDP
         texturesCO2[c] = continentTexDataCO2
         texturesPD[c] = continentTexDataPD
 
-#
-# Allows for easy obtaining of a particular texture ID and image
-# based on a continent and a year, as a tuple.
-# 0 - texture ID
-# 1 - texture image
-#
 def getTextureImageDataPair(dataSource, continent, year):
+    """
+       Allows for easy obtaining of a particular texture ID and image based on 
+       a continent and a year, as a tuple.
+       0 - texture ID
+       1 - texture image
+    """
+    
     textureData = dataSource[continent]
     textureImagePair = textureData[0][year]
     
     return textureImagePair
 
-#
-# Make a selection of textures to display based on year and data type
-#
 def makeTextureSelection():
+    """
+        Make a selection of textures to display based on year and data type.
+    """
+    
     global selectedDataType, selectedYear, selectedContinentTextureIDs
     
-    if selectedDataType == "TB":
+    # Select texture data to access
+    if selectedDataType == TB:
         dataSource = texturesTB
-    elif selectedDataType == "GDP":
+    elif selectedDataType == GDP:
         dataSource = texturesGDP
-    elif selectedDataType == "CO2":
+    elif selectedDataType == CO2:
         dataSource = texturesCO2
     else:
         dataSource = texturesPD
     
+    # Set texture IDs for displaying textures on the cube
     i = 0
     for c in continentNames:
         textureData = getTextureImageDataPair(dataSource, c, selectedYear)
@@ -122,12 +154,13 @@ def makeTextureSelection():
         selectedContinentTextureIDs[i] = textureID
         i += 1
     
-#
-# Handle the creation of textures from a particular dictionary
-# of texture IDs and images based on a given statistical data type (TB, GDP,
-# CO2, PD).
-#
-def initialiseTexturesFromSource(dataSource):   
+def initialiseTexturesFromSource(dataSource):
+    """
+        Handle the creation of textures from a particular dictionary of 
+        texture IDs and images based on a given statistical data type (TB, GDP,
+        CO2, PD).
+    """
+    
     for c in continentNames:
         for y in years:
             textureImagePair = getTextureImageDataPair(dataSource, c, y)
@@ -143,37 +176,39 @@ def initialiseTexturesFromSource(dataSource):
                          textureImage.sizeY, 0, GL_RGBA, GL_UNSIGNED_BYTE, 
                          textureImage.data)
 
-#
-# Create textures from all texture data sources
-#
 def initialiseAllTextures():
+    """
+        Create textures from all texture data sources.
+    """
+    
     initialiseTexturesFromSource(texturesTB)      
     initialiseTexturesFromSource(texturesGDP)
     initialiseTexturesFromSource(texturesCO2)
     initialiseTexturesFromSource(texturesPD)    
     
     makeTextureSelection()
+
 #
 # pyOpenGL SETUP
 #
 def startGL(width, height):
-    
     """
-        Initialise continent data and settings for background colour, depth testing, blending 
-        and shading models.
+        Load continent data and textures and configure settings for 
+        background colour, depth testing, blending and shading models.
     """
     
-    # Load all continent numerical data
-    print("Loading data...")
+    # Load all numerical data for continents
+    print(DATA_LOADING)
     allData = Continent.generateFullContinentList()
-    print("Done.")
+    print(DONE)
     
     # Load all textures
-    print("Loading texture images...")
+    print(TEXTURES_LOADING)
     loadTextureImages()
     initialiseAllTextures()
-    print("Done.")
+    print(DONE)
     
+    # Display setting configuration
     glClearColor(0, 0, 0, 0)
     glClearDepth(1)
     glDepthFunc(GL_LESS)
@@ -187,6 +222,7 @@ def resizeWindow(width, height):
         Reconfigure drawing area (FOV, aspect ratio, near and far planes)
         and matrix type every time the window is resized.
     """
+    
     if height == 0:
         height = 1
     
@@ -200,37 +236,38 @@ def resizeWindow(width, height):
 # USER INPUT HANDLING
 #
 def keyPresses(key, x, y):
-    global selectedDataType
     """
         Handle all keyboard key presses.
     """
+    
+    global selectedDataType
     key = ord(key)
     
-    # Handle all keyboard controls
     if key == ESC:
         # ESC key - exit the program
-        print("Exiting...")
         exitProgram()
     elif key == ord('a') or key == ord('A'):
         # Display average TB on the cube
-        print("Displaying average TB")
-        selectedDataType = "TB"
+        print(DISPLAY_TB)
+        selectedDataType = TB
         makeTextureSelection()
         drawDisplay()
     elif key == ord('s') or key == ord('S'):
         # Display average GDP on the cube
-        print("Displaying average GDP")
-        selectedDataType = "GDP"
+        print(DISPLAY_GDP)
+        selectedDataType = GDP
         makeTextureSelection()
         drawDisplay()
     elif key == ord('d') or key == ord('D'):
-        print("Displaying average CO2")
-        selectedDataType = "CO2"
+        # Display average CO2 on the cube
+        print(DISPLAY_CO2)
+        selectedDataType = CO2
         makeTextureSelection()
         drawDisplay()
     elif key == ord('f') or key == ord('F'):
-        print("Displaying average PD")
-        selectedDataType = "PD"
+        # Display average GDP on the cube
+        print(DISPLAY_PD)
+        selectedDataType = PD
         makeTextureSelection()
         drawGlobe()
         
@@ -238,7 +275,7 @@ def mouseClicks(button, state, x, y):
     """
         Handle all mouse clicks.
     """
-    # Handle all mouse button clicks
+
     if button == GLUT_RIGHT_BUTTON:
         if state == GLUT_DOWN:
             print("Right mouse button clicked!")
@@ -251,6 +288,10 @@ def mouseClicks(button, state, x, y):
 #
 
 def drawCubeFace(size):
+    """
+        Draw a face for the world cube
+    """
+    
     glBegin(GL_QUADS)
     glTexCoord2f(0, 0)
     glVertex3f(0, 0, 0)
@@ -263,6 +304,10 @@ def drawCubeFace(size):
     glEnd()
     
 def drawWorldCube(textureIDs):
+    """
+        Draw the cube that will display continents.
+    """
+    
     size = 2
     glPushMatrix()
     
@@ -292,20 +337,20 @@ def drawDisplay():
     """ 
         Main drawing function for the program. 
     """
+    
     # Prepare to draw
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
     glTranslatef(-1, 0, -6)
     glEnable(GL_TEXTURE_2D)
     
-    # Start drawing
+    # Start drawing the cube
     glPushMatrix()
     drawWorldCube(selectedContinentTextureIDs)
     glPopMatrix()
     
     # Make drawing appear on screen
     glutSwapBuffers()
-    #sleep(0.01)
 
 #
 # PROGRAM FEATURES
@@ -314,6 +359,7 @@ def exitProgram():
     """ 
         Quick function call for exiting the program.
     """
+    print(EXITING)
     glutDestroyWindow(windowHandle)
     sys.exit()
 
