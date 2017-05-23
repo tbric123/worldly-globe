@@ -42,11 +42,13 @@ PD = "PD"
 
 # Default selections when program starts
 defaultDataType = TB
-defaultYear = years[0]
+defaultYearIndex = 0
+defaultYear = years[defaultYearIndex]
 
 # Selections within program
 selectedDataType = defaultDataType
 selectedYear = defaultYear
+selectedYearIndex = defaultYearIndex
 selectedContinentTextureIDs = [0, 0, 0, 0, 0, 0]
 
 # Console Messages
@@ -240,7 +242,7 @@ def keyPresses(key, x, y):
         Handle all keyboard key presses.
     """
     
-    global selectedDataType
+    global selectedDataType, selectedYear, selectedYearIndex
     key = ord(key)
     
     if key == ESC:
@@ -250,26 +252,44 @@ def keyPresses(key, x, y):
         # Display average TB on the cube
         print(DISPLAY_TB)
         selectedDataType = TB
-        makeTextureSelection()
-        drawDisplay()
+        refreshDrawing()
     elif key == ord('s') or key == ord('S'):
         # Display average GDP on the cube
         print(DISPLAY_GDP)
         selectedDataType = GDP
-        makeTextureSelection()
-        drawDisplay()
+        refreshDrawing()
     elif key == ord('d') or key == ord('D'):
         # Display average CO2 on the cube
         print(DISPLAY_CO2)
         selectedDataType = CO2
-        makeTextureSelection()
-        drawDisplay()
+        refreshDrawing()
     elif key == ord('f') or key == ord('F'):
-        # Display average GDP on the cube
+        # Display average PD on the cube
         print(DISPLAY_PD)
         selectedDataType = PD
-        makeTextureSelection()
-        drawGlobe()
+        refreshDrawing()
+    elif key == ord('w') or key == ord('W'):
+        # Decrease year displayed by one year
+        selectedYearIndex -= 1
+        
+        # Set minimum selection
+        if selectedYearIndex < 0:
+            selectedYearIndex = 0
+        
+        selectedYear = years[selectedYearIndex]
+        print("Year changed to", selectedYear)
+        refreshDrawing()
+    elif key == ord('e') or key == ord('E'):
+        # Increase year displayed by one year
+        selectedYearIndex += 1
+        
+        # Set maximum selction
+        if selectedYearIndex >= len(years):
+            selectedYearIndex = len(years) - 1  
+                   
+        selectedYear = years[selectedYearIndex]
+        print("Year changed to", selectedYear)
+        refreshDrawing()
         
 def mouseClicks(button, state, x, y):
     """
@@ -363,6 +383,12 @@ def exitProgram():
     glutDestroyWindow(windowHandle)
     sys.exit()
 
+def refreshDrawing():
+    """
+        Update textures and drawings.
+    """
+    makeTextureSelection()
+    drawDisplay()
 #
 # PROGRAM STARTING POINT
 # 
