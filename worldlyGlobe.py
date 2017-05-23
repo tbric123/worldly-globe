@@ -24,13 +24,14 @@ ESC = 27
 
 # Data
 years = ['2013', '2012', '2011', '2010', '2009', '2008', '2007', '2006', '2005', '2004']
-continentNames = ["Africa", "Asia", "Europe", "North America", "Oceania", "South America"]
+continentNames = ["Europe", "Africa", "Asia", "North America", "Oceania", "South America"]
 allData = []
 texturesTB = {}
 texturesGDP = {}
 texturesCO2 = {}
 texturesPD = {}
 
+# Data 
 # Selections within program
 selectedDataType = "TB"
 selectedYear = "2013"
@@ -199,6 +200,7 @@ def resizeWindow(width, height):
 # USER INPUT HANDLING
 #
 def keyPresses(key, x, y):
+    global selectedDataType
     """
         Handle all keyboard key presses.
     """
@@ -207,24 +209,25 @@ def keyPresses(key, x, y):
     # Handle all keyboard controls
     if key == ESC:
         # ESC key - exit the program
+        print("Exiting...")
         exitProgram()
     elif key == ord('a') or key == ord('A'):
         # Display average TB on the cube
         print("Displaying average TB")
         selectedDataType = "TB"
         makeTextureSelection()
-        drawGlobe()
+        drawDisplay()
     elif key == ord('s') or key == ord('S'):
         # Display average GDP on the cube
         print("Displaying average GDP")
         selectedDataType = "GDP"
         makeTextureSelection()
-        drawGlobe()
+        drawDisplay()
     elif key == ord('d') or key == ord('D'):
         print("Displaying average CO2")
         selectedDataType = "CO2"
         makeTextureSelection()
-        drawGlobe()
+        drawDisplay()
     elif key == ord('f') or key == ord('F'):
         print("Displaying average PD")
         selectedDataType = "PD"
@@ -238,12 +241,54 @@ def mouseClicks(button, state, x, y):
     # Handle all mouse button clicks
     if button == GLUT_RIGHT_BUTTON:
         if state == GLUT_DOWN:
-            exitProgram()
+            print("Right mouse button clicked!")
+    elif button == GLUT_MIDDLE_BUTTON:
+        if state == GLUT_DOWN:
+            print("Middle mouse button clicked!")
 
 #
 # DRAWING ABILITIES
 #
-def drawGlobe():
+
+def drawCubeFace(size):
+    glBegin(GL_QUADS)
+    glTexCoord2f(0, 0)
+    glVertex3f(0, 0, 0)
+    glTexCoord2f(1, 0)
+    glVertex3f(size, 0, 0)
+    glTexCoord2f(1, 1)
+    glVertex3f(size, size, 0)
+    glTexCoord2f(0, 1)
+    glVertex3f(0, size, 0)
+    glEnd()
+    
+def drawWorldCube(textureIDs):
+    size = 2
+    glPushMatrix()
+    
+    faceIndex = 1
+    for i in textureIDs:
+        glBindTexture(GL_TEXTURE_2D, i)
+        if faceIndex == 1:
+            glTranslatef(-size/2, -size/2, -0.5)
+        elif faceIndex == 2 or faceIndex == 3:
+            glTranslatef(size, 0, 0)
+            glRotatef(90, 0, 1, 0 )
+        elif faceIndex == 4:
+            glRotatef(-90, 1, 0, 0)
+        elif faceIndex == 5:
+            glRotatef(90, 1, 0, 0)
+            glTranslatef(size, 0, 0)
+            glRotatef(90, 0, 1, 0)
+        else:
+            glTranslatef( 0, size, 0 )
+            glRotatef( -90, 1, 0, 0 )
+        drawCubeFace(size)
+        faceIndex += 1
+        
+    glPopMatrix()
+    
+def drawDisplay():
     """ 
         Main drawing function for the program. 
     """
@@ -251,14 +296,16 @@ def drawGlobe():
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
     glTranslatef(-1, 0, -6)
+    glEnable(GL_TEXTURE_2D)
     
     # Start drawing
-    glColor3f(0, 0, 1)
-    glutSolidSphere(1.5, 100, 100)
+    glPushMatrix()
+    drawWorldCube(selectedContinentTextureIDs)
+    glPopMatrix()
     
     # Make drawing appear on screen
     glutSwapBuffers()
-    sleep(0.01)
+    #sleep(0.01)
 
 #
 # PROGRAM FEATURES
@@ -293,8 +340,8 @@ def main():
     windowHandle = glutCreateWindow(programTitle)
 
     # Set up display, idle, resizing and keyboard handling functions
-    glutDisplayFunc(drawGlobe)
-    glutIdleFunc(drawGlobe)
+    glutDisplayFunc(drawDisplay)
+    glutIdleFunc(drawDisplay)
     glutReshapeFunc(resizeWindow)
     glutKeyboardFunc(keyPresses)
     glutMouseFunc(mouseClicks)
