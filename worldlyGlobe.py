@@ -18,6 +18,14 @@ initialYPosition = 0
 fov = 45
 programTitle = b"Worldly Globe"
 
+# Scaling and rotating
+scaleFactor = 0
+
+# Limits enforced on zooming in and out
+scalingUpperLimit = 4
+scalingLowerLimit = -4
+scale = 1
+
 # Controls
 ESC = 27
 
@@ -290,6 +298,39 @@ def keyPresses(key, x, y):
         selectedYear = years[selectedYearIndex]
         print("Year changed to", selectedYear)
         refreshDrawing()
+
+def zoomControls(key, x, y):
+    global scaleFactor, scale, scalingUpperLimit, scalingLowerLimit
+    """
+        Key handling function for zooming in and out. A separate function is
+        needed to read the arrow keys (or any other non-ASCII characters).
+    """
+    if key == GLUT_KEY_UP:
+        # Zoom in
+        scale += 1
+        print("Attempting to zoom in")
+        print("Scale:", scale)
+        if scale <= scalingUpperLimit:
+            scaleFactor += 1
+            print("Zoom in")
+            refreshDisplay()
+        else:
+            scale = scalingUpperLimit
+            print("Can't zoom in any further!")
+        refreshDisplay()
+    elif key == GLUT_KEY_DOWN:
+        scale -= 1
+        print("Attempting to zoom out")
+        print("Scale:", scale)
+        if scale >= scalingLowerLimit:
+            scaleFactor -= 1
+            print("Zoom out")
+            refreshDisplay()
+        else:
+            scale = scalingLowerLimit
+            print("Can't zoom out any further!")
+        refreshDisplay()
+            
         
 def mouseClicks(button, state, x, y):
     """
@@ -299,10 +340,10 @@ def mouseClicks(button, state, x, y):
     if button == GLUT_RIGHT_BUTTON:
         if state == GLUT_DOWN:
             print("Right mouse button clicked!")
-    elif button == GLUT_MIDDLE_BUTTON:
+    elif button == GLUT_LEFT_BUTTON:
         if state == GLUT_DOWN:
-            print("Middle mouse button clicked!")
-
+            print("Left mouse button clicked!")
+            
 #
 # DRAWING ABILITIES
 #
@@ -357,11 +398,13 @@ def drawDisplay():
     """ 
         Main drawing function for the program. 
     """
+    global scaleFactor
     
     # Prepare to draw
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
     glTranslatef(-1, 0, -6)
+    glTranslate(0, 0, scaleFactor) # Zooming in and out
     glEnable(GL_TEXTURE_2D)
     
     # Start drawing the cube
@@ -371,7 +414,7 @@ def drawDisplay():
     
     # Make drawing appear on screen
     glutSwapBuffers()
-
+    #scaleFactor = 0
 #
 # PROGRAM FEATURES
 #    
@@ -411,12 +454,13 @@ def main():
     glutInitWindowPosition(initialXPosition, initialYPosition)
     windowHandle = glutCreateWindow(programTitle)
 
-    # Set up display, idle, resizing and keyboard handling functions
+    # Set up display, idle, resizing and mouse and keyboard handling functions
     glutDisplayFunc(drawDisplay)
     glutIdleFunc(drawDisplay)
     glutReshapeFunc(resizeWindow)
     glutKeyboardFunc(keyPresses)
     glutMouseFunc(mouseClicks)
+    glutSpecialFunc(zoomControls) # For non-ASCII keys (i.e. arrow keys)
     
     # Initialise OpenGL and run program 
     startGL(initialWidth, initialHeight)
