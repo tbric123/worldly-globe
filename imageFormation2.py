@@ -52,6 +52,7 @@ class ContinentImageCreator(object):
         
         for f in dataTypeFunctions:
             valuesList = continent.getAverageValuesList(f)
+            print(dataTypeNames[f - 1], ":", valuesList)
             gradient = ContinentImageCreator.calculateColourGradient(valuesList)
             for y in years:
                 savedName = "maps/" + continent.getName() + dataTypeNames[f - 1] + y + ".bmp"
@@ -60,8 +61,10 @@ class ContinentImageCreator(object):
                 ContinentImageCreator.generateImage(value, originalName, savedName)
 
 if __name__ == "__main__":
-    continentList = Continent.generateFullContinentList()
-    print(continentList)
-    
+    continentList = Continent.generateFullContinentList()    
+    print("Creating images...")
     for c in continentList:
+        print(c.getName(), ":")
+        print([x.getName() for x in c.getCountries()])        
         ContinentImageCreator.createAllImages(c)
+    print("Done!")
