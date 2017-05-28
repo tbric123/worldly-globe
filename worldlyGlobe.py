@@ -71,6 +71,11 @@ selectedYear = defaultYear
 selectedYearIndex = defaultYearIndex
 selectedContinentTextureIDs = [0, 0, 0, 0, 0, 0]
 
+# Text positioning on-screen
+xTextPos = 3.1
+yTextPosDT = -2
+yTextPosY = yTextPosDT - 0.08
+
 # Console Messages
 IMAGE_NOT_FOUND = "An image couldn't be loaded - program will exit."
 DATA_LOADING = "Loading data..."
@@ -460,6 +465,33 @@ def drawWorldCube(textureIDs):
         faceIndex += 1
         
     glPopMatrix()
+
+def drawSelectionText():
+    """
+        Draws text on the screen to show the selected data type, year and
+        value at those points, for a particular continent
+    """
+    glDisable(GL_TEXTURE_2D) 
+    font = GLUT_BITMAP_HELVETICA_12
+    
+    glLoadIdentity() # Cannot rotate with cube!
+    glTranslatef(0, 0, -6)
+    glColor4f(1, 1, 1, 1.0) # Text will be white
+    glPushMatrix()
+    
+    # Display selected data type
+    glRasterPos2f(xTextPos, yTextPosDT)
+    for c in "Data Type: " + selectedDataType:
+        glutBitmapCharacter(font, ord(c))
+    
+    # Display selected year
+    glRasterPos2f(xTextPos, yTextPosY)
+    for c in "Year: " + selectedYear:
+        glutBitmapCharacter(font, ord(c))
+    
+    # Re-enable texturing
+    glEnable(GL_TEXTURE_2D)
+    glPopMatrix()
     
 def drawDisplay():
     """ 
@@ -468,18 +500,20 @@ def drawDisplay():
     global scaleFactor
     
     # Prepare to draw
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    glLoadIdentity()
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)    
+    glLoadIdentity() 
     glTranslatef(0, 0, -6)
     glTranslate(0, 0, scaleFactor) # Zooming in and out
     glRotated(tiltAmount, 1, 0, 0) # Tilting
-    glRotated(panAmount, 0, 1, 0) # Panning
+    glRotated(panAmount, 0, 1, 0) # Panning 
     glEnable(GL_TEXTURE_2D)
     
     # Start drawing the cube
     glPushMatrix()
     drawWorldCube(selectedContinentTextureIDs)
     glPopMatrix()
+    
+    drawSelectionText()
     
     # Make drawing appear on screen
     glutSwapBuffers()
@@ -515,8 +549,6 @@ def fixateOnContinent(continent):
     printAngles()
     refreshDisplay()
 
-
-
 #
 # PROGRAM STARTING POINT
 # 
@@ -531,6 +563,7 @@ def main():
         glutInitWindowSize(initialWidth, initialHeight)
         glutInitWindowPosition(initialXPosition, initialYPosition)
         windowHandle = glutCreateWindow(programTitle)
+        glutFullScreen()
         
         # Set up direct navigation menu
         glutCreateMenu(continentMenu)
@@ -547,13 +580,12 @@ def main():
         glutIdleFunc(drawDisplay)
         glutReshapeFunc(resizeWindow)
         glutKeyboardFunc(keyPresses)
-        #glutMouseFunc(mouseClicks)
         glutSpecialFunc(rotationControls) # For non-ASCII keys (i.e. arrow keys)
     except:
         print(START_ERROR)
         return 
     
-    # Initialise OpenGL and run program 
+    # Initialise OpenGL and run program (will be in full screen)
     startGL(initialWidth, initialHeight)
     printAngles()
     print(WINDOW_OPEN)
