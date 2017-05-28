@@ -49,6 +49,7 @@ texturesTB = {}
 texturesGDP = {}
 texturesCO2 = {}
 texturesPD = {}
+currentValue = 0
 
 # Image file handling
 BMP = ".bmp"
@@ -60,21 +61,29 @@ GDP = "GDP"
 CO2 = "CO2"
 PD = "PD"
 
+dataTypes = {TB:1, GDP:2, CO2:3, PD:4}
+units = {TB:"deaths/capita", GDP:"$US/capita", CO2:"tonnes/capita", 
+         PD:"people/km^2"}
+
 # Default selections when program starts
 defaultDataType = TB
 defaultYearIndex = 0
 defaultYear = years[defaultYearIndex]
+defaultContinent = "Europe"
 
 # Selections within program
 selectedDataType = defaultDataType
 selectedYear = defaultYear
 selectedYearIndex = defaultYearIndex
 selectedContinentTextureIDs = [0, 0, 0, 0, 0, 0]
+selectedContinent = defaultContinent
 
 # Text positioning on-screen
-xTextPos = 3.1
+xTextPos = 3
 yTextPosDT = -2
 yTextPosY = yTextPosDT - 0.08
+yTextPosV = yTextPosY - 0.08
+yTextPosC = yTextPosDT + 0.08
 
 # Console Messages
 IMAGE_NOT_FOUND = "An image couldn't be loaded - program will exit."
@@ -99,22 +108,34 @@ ZOOM_OUT_LIMIT = "Can't zoom out any further!"
 
 # Right click menu resources
 def selectAfrica():
-    fixateOnContinent("Africa")
+    global selectedContinent
+    selectedContinent = "Africa"
+    fixateOnContinent(selectedContinent)
 
 def selectAsia():
-    fixateOnContinent("Asia")
+    global selectedContinent
+    selectedContinent = "Asia"
+    fixateOnContinent(selectedContinent)
 
 def selectEurope():
-    fixateOnContinent("Europe")
+    global selectedContinent
+    selectedContinent = "Europe"
+    fixateOnContinent(selectedContinent)
 
 def selectNorthAmerica():
-    fixateOnContinent("North America")
+    global selectedContinent
+    selectedContinent = "North America"
+    fixateOnContinent(selectedContinent)
 
 def selectOceania():
-    fixateOnContinent("Oceania")
+    global selectedContinent
+    selectedContinent = "Oceania"
+    fixateOnContinent(selectedContinent)
 
 def selectSouthAmerica():
-    fixateOnContinent("South America")
+    global selectedContinent
+    selectedContinent = "South America"
+    fixateOnContinent(selectedContinent)
     
 def continentMenu(item):
     options[item]()
@@ -253,6 +274,13 @@ def initialiseAllTextures():
     
     makeTextureSelection()
 
+def setCurrentValue():
+    global currentValue, allData, selectedContinent
+    for c in allData:
+        if c.getName() == selectedContinent:
+            currentValue = c.getAverageValue(selectedYear, dataTypes[selectedDataType])
+            return
+
 #
 # pyOpenGL SETUP
 #
@@ -261,6 +289,7 @@ def startGL(width, height):
         Load continent data and textures and configure settings for 
         background colour, depth testing, blending and shading models.
     """
+    global allData
     
     # Load all numerical data for continents
     print(DATA_LOADING)
@@ -272,6 +301,8 @@ def startGL(width, height):
     loadTextureImages()
     initialiseAllTextures()
     print(DONE)
+    
+    setCurrentValue()
     
     # Display setting configuration
     glClearColor(0, 0, 0, 0)
@@ -316,22 +347,22 @@ def keyPresses(key, x, y):
         # Display average TB on the cube
         print(DISPLAY_TB)
         selectedDataType = TB
-        refreshDrawing()
+        refreshDisplay()
     elif key == ord('s') or key == ord('S'):
         # Display average GDP on the cube
         print(DISPLAY_GDP)
         selectedDataType = GDP
-        refreshDrawing()
+        refreshDisplay()
     elif key == ord('d') or key == ord('D'):
         # Display average CO2 on the cube
         print(DISPLAY_CO2)
         selectedDataType = CO2
-        refreshDrawing()
+        refreshDisplay()
     elif key == ord('f') or key == ord('F'):
         # Display average PD on the cube
         print(DISPLAY_PD)
         selectedDataType = PD
-        refreshDrawing()
+        refreshDisplay()
     elif key == ord('w') or key == ord('W'):
         # Decrease year displayed by one year
         selectedYearIndex -= 1
@@ -342,7 +373,7 @@ def keyPresses(key, x, y):
         
         selectedYear = years[selectedYearIndex]
         print(YEAR_CHANGE, selectedYear)
-        refreshDrawing()
+        refreshDisplay()
     elif key == ord('e') or key == ord('E'):
         # Increase year displayed by one year
         selectedYearIndex += 1
@@ -353,7 +384,7 @@ def keyPresses(key, x, y):
                    
         selectedYear = years[selectedYearIndex]
         print(YEAR_CHANGE, selectedYear)
-        refreshDrawing()
+        refreshDisplay()
     elif key == ord('.') or key == ord('>'):
         # Zoom in
         scale += 1
@@ -403,19 +434,7 @@ def rotationControls(key, x, y):
         panAmount -= PAN
         printAngles()
         refreshDisplay()
-        
-def mouseClicks(button, state, x, y):
-    """
-        Handle all mouse clicks.
-    """
 
-    if button == GLUT_RIGHT_BUTTON:
-        if state == GLUT_DOWN:
-            print("Right mouse button clicked!")
-    elif button == GLUT_LEFT_BUTTON:
-        if state == GLUT_DOWN:
-            print("Left mouse button clicked!")
-            
 #
 # DRAWING ABILITIES
 #
@@ -480,6 +499,10 @@ def drawSelectionText():
     glPushMatrix()
     
     # Display selected data type
+    glRasterPos2f(xTextPos, yTextPosC)
+    for c in "Continent: " + selectedContinent:
+        glutBitmapCharacter(font, ord(c))
+        
     glRasterPos2f(xTextPos, yTextPosDT)
     for c in "Data Type: " + selectedDataType:
         glutBitmapCharacter(font, ord(c))
@@ -487,6 +510,11 @@ def drawSelectionText():
     # Display selected year
     glRasterPos2f(xTextPos, yTextPosY)
     for c in "Year: " + selectedYear:
+        glutBitmapCharacter(font, ord(c))
+    
+    # Display the value of the data at the selected data type, year and continent
+    glRasterPos2f(xTextPos, yTextPosV)
+    for c in "Value: " + str(currentValue) + " " + units[selectedDataType]:
         glutBitmapCharacter(font, ord(c))
     
     # Re-enable texturing
@@ -529,11 +557,12 @@ def exitProgram():
     glutDestroyWindow(windowHandle)
     sys.exit()
 
-def refreshDrawing():
+def refreshDisplay():
     """
         Update textures and drawings.
     """
     makeTextureSelection()
+    setCurrentValue()
     drawDisplay()
     
 def printAngles():
@@ -563,7 +592,7 @@ def main():
         glutInitWindowSize(initialWidth, initialHeight)
         glutInitWindowPosition(initialXPosition, initialYPosition)
         windowHandle = glutCreateWindow(programTitle)
-        glutFullScreen()
+        #glutFullScreen()
         
         # Set up direct navigation menu
         glutCreateMenu(continentMenu)
