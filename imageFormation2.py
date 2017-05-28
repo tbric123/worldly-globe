@@ -51,12 +51,12 @@ class ContinentImageCreator(object):
         originalName = "maps/" + continent.getName() + "Blue.bmp"
         
         for f in dataTypeFunctions:
-            valuesList = continent.getAverageValuesList(f)
+            valuesList = continent.getMedianValuesList(f)
             print(dataTypeNames[f - 1], ":", valuesList)
             gradient = ContinentImageCreator.calculateColourGradient(valuesList)
             for y in years:
                 savedName = "maps/" + continent.getName() + dataTypeNames[f - 1] + y + ".bmp"
-                value = continent.getAverageValue(y, f)
+                value = continent.getMedianValue(y, f)
                 value = ContinentImageCreator.calculateGreenChannel(value, gradient)
                 ContinentImageCreator.generateImage(value, originalName, savedName)
 

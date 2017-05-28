@@ -102,10 +102,10 @@ EXITING = "Exiting..."
 START_ERROR = "Program couldn't start."
 WINDOW_OPEN = "Opening window..."
 WELCOME = "Worldly Cube - press ESC or right-click window to exit program."
-DISPLAY_TB = "Displaying average TB."
-DISPLAY_GDP = "Displaying average GDP."
-DISPLAY_CO2 = "Displaying average CO2."
-DISPLAY_PD = "Displaying average PD."
+DISPLAY_TB = "Displaying median TB."
+DISPLAY_GDP = "Displaying median GDP."
+DISPLAY_CO2 = "Displaying median CO2."
+DISPLAY_PD = "Displaying median PD."
 YEAR_CHANGE = "Year changed to"
 ZOOM_IN = "Zoomed in."
 ZOOM_OUT = "Zoomed out."
@@ -286,7 +286,7 @@ def setCurrentValue():
     global currentValue, allData, selectedContinent
     for c in allData:
         if c.getName() == selectedContinent:
-            currentValue = c.getAverageValue(selectedYear, dataTypes[selectedDataType])
+            currentValue = c.getMedianValue(selectedYear, dataTypes[selectedDataType])
             return
 
 def setDisplayedContinentText():
@@ -360,23 +360,19 @@ def keyPresses(key, x, y):
         # ESC key - exit the program
         exitProgram()
     elif key == ord('a') or key == ord('A'):
-        # Display average TB on the cube
-        print(DISPLAY_TB)
+        # Display median TB on the cube
         selectedDataType = TB
         refreshDisplay()
     elif key == ord('s') or key == ord('S'):
-        # Display average GDP on the cube
-        print(DISPLAY_GDP)
+        # Display median GDP on the cube
         selectedDataType = GDP
         refreshDisplay()
     elif key == ord('d') or key == ord('D'):
-        # Display average CO2 on the cube
-        print(DISPLAY_CO2)
+        # Display median CO2 on the cube
         selectedDataType = CO2
         refreshDisplay()
     elif key == ord('f') or key == ord('F'):
-        # Display average PD on the cube
-        print(DISPLAY_PD)
+        # Display median PD on the cube
         selectedDataType = PD
         refreshDisplay()
     elif key == ord('w') or key == ord('W'):
@@ -388,7 +384,6 @@ def keyPresses(key, x, y):
             selectedYearIndex = 0
         
         selectedYear = years[selectedYearIndex]
-        print(YEAR_CHANGE, selectedYear)
         refreshDisplay()
     elif key == ord('e') or key == ord('E'):
         # Increase year displayed by one year
@@ -399,29 +394,22 @@ def keyPresses(key, x, y):
             selectedYearIndex = len(years) - 1  
                    
         selectedYear = years[selectedYearIndex]
-        print(YEAR_CHANGE, selectedYear)
         refreshDisplay()
     elif key == ord('.') or key == ord('>'):
         # Zoom in
         scale += 1
-        print(ZOOM_IN_ATTEMPT)
         if scale <= scalingUpperLimit:
             scaleFactor += 1
-            print(ZOOM_IN)
         else:
             scale = scalingUpperLimit
-            print(ZOOM_IN_LIMIT)
         refreshDisplay()
     elif key == ord(',') or key == ord('<'):
         # Zoom out
         scale -= 1
-        print(ZOOM_OUT_ATTEMPT)
         if scale >= scalingLowerLimit:
             scaleFactor -= 1
-            print(ZOOM_OUT)
         else:
             scale = scalingLowerLimit
-            print(ZOOM_OUT_LIMIT)
         refreshDisplay()
         
 def rotationControls(key, x, y):
@@ -436,7 +424,6 @@ def rotationControls(key, x, y):
         if tiltAmount > 180:
             tiltAmount = 180
         setDisplayedContinentText()
-        printAngles()
         refreshDisplay()
     elif key == GLUT_KEY_DOWN:
         # Tilt down by 10 degrees
@@ -444,7 +431,6 @@ def rotationControls(key, x, y):
         if tiltAmount < -180:
             tiltAmount = -180
         setDisplayedContinentText()
-        printAngles()
         refreshDisplay()
     elif key == GLUT_KEY_LEFT:
         # Pan to right by 10 degrees
@@ -452,7 +438,6 @@ def rotationControls(key, x, y):
         if panAmount > 180:
             panAmount = 180
         setDisplayedContinentText()
-        printAngles()
         refreshDisplay()
     elif key == GLUT_KEY_RIGHT:
         # Pan to left by 10 degrees
@@ -460,7 +445,6 @@ def rotationControls(key, x, y):
         if panAmount < -180:
             panAmount = -180
         setDisplayedContinentText()
-        printAngles()
         refreshDisplay()
 
 #
@@ -594,9 +578,6 @@ def refreshDisplay():
     setDisplayedContinentText()
     drawDisplay()
     
-def printAngles():
-    print("Tilt:", tiltAmount, "Pan:", panAmount)
-
 def fixateOnContinent(continent):
     """
         When a continent is selected, the cube rotates to show off said
@@ -604,7 +585,6 @@ def fixateOnContinent(continent):
     """
     global panAmount, tiltAmount
     tiltAmount, panAmount = rotationalPositions[continent]
-    printAngles()
     refreshDisplay()
 
 #
@@ -621,7 +601,7 @@ def main():
         glutInitWindowSize(initialWidth, initialHeight)
         glutInitWindowPosition(initialXPosition, initialYPosition)
         windowHandle = glutCreateWindow(programTitle)
-        #glutFullScreen()
+        glutFullScreen()
         
         # Set up direct navigation menu
         glutCreateMenu(continentMenu)
@@ -645,7 +625,6 @@ def main():
     
     # Initialise OpenGL and run program (will be in full screen)
     startGL(initialWidth, initialHeight)
-    printAngles()
     print(WINDOW_OPEN)
     print(WELCOME)
     glutMainLoop()

@@ -1,5 +1,6 @@
 from country import Country
 from worldStatistic import WorldStatistic
+import statistics
 
 class Continent(object):
     
@@ -8,17 +9,17 @@ class Continent(object):
         self.name = name
         self.countries = []
         
-        self.averageTB = {}
-        self.totalTB = {}
+        self.medianTB = {}
+        self.valuesTB = {}
         
-        self.averageGDP = {}
-        self.totalGDP = {}
+        self.medianGDP = {}
+        self.valuesGDP = {}
         
-        self.averageCO2 = {}
-        self.totalCO2 = {}
+        self.medianCO2 = {}
+        self.valuesCO2 = {}
         
-        self.averagePD = {}
-        self.totalPD = {}
+        self.medianPD = {}
+        self.valuesPD = {}
         
         self.yearList = []
         self.fillYears()
@@ -39,49 +40,57 @@ class Continent(object):
         
         # Totals calculation
         for y in self.yearList:
-            self.totalTB[y] += round(country.getStatValue(1, y), 3)
-            self.totalGDP[y] += round(country.getStatValue(2, y), 3)
-            self.totalCO2[y] += round(country.getStatValue(3, y), 3)
-            self.totalPD[y] += round(country.getStatValue(4, y), 3)
+            valsTB = self.valuesTB[y]
+            valsTB.append(country.getStatValue(1, y))
+            self.valuesTB[y] = valsTB
+            self.medianTB[y] = round(statistics.median(self.valuesTB[y]), 3)
+            
+            valsGDP = self.valuesGDP[y]
+            valsGDP.append(country.getStatValue(2, y))
+            self.valuesGDP[y] = valsGDP
+            self.medianGDP[y] = round(statistics.median(self.valuesGDP[y]), 3)
+            
+            valsCO2 = self.valuesCO2[y]
+            valsCO2.append(country.getStatValue(3, y))
+            self.valuesCO2[y] = valsCO2
+            self.medianCO2[y] = round(statistics.median(self.valuesCO2[y]), 3)
+            
+            valsPD = self.valuesPD[y]
+            valsPD.append(country.getStatValue(4, y))
+            self.valuesPD[y] = valsPD
+            self.medianPD[y] = round(statistics.median(self.valuesPD[y]), 3)
                
-        # Update averages
-        for y in self.yearList:
-            self.averageTB[y] = round(self.totalTB[y] / countryCount, 3)
-            self.averageGDP[y] = round(self.totalGDP[y] / countryCount, 3)
-            self.averageCO2[y] = round(self.totalCO2[y] / countryCount, 3)
-            self.averagePD[y] = round(self.totalPD[y] / countryCount, 3)  
-           
-    def getAverageTB(self, year):
-        return self.averageTB[year]
+    def getMedianTB(self, year):
+        return self.medianTB[year]
     
-    def getAverageGDP(self, year):
-        return self.averageGDP[year]
+    def getMedianGDP(self, year):
+        return self.medianGDP[year]
     
-    def getAverageCO2(self, year):
-        return self.averageCO2[year]
+    def getMedianCO2(self, year):
+        return self.medianCO2[year]
     
-    def getAveragePD(self, year):
-        return self.averagePD[year]
+    def getMedianPD(self, year):
+        return self.medianPD[year]
     
-    def getAverageValue(self, year, choice):
+    def getMedianValue(self, year, choice):
         if choice == 1:
-            return self.getAverageTB(year)
+            return self.getMedianTB(year)
         elif choice == 2:
-            return self.getAverageGDP(year)
+            return self.getMedianGDP(year)
         elif choice == 3:
-            return self.getAverageCO2(year)
+            return self.getMedianCO2(year)
         else:
-            return self.getAveragePD(year)
+            return self.getMedianPD(year)
     
-    def getAverageValuesList(self, choice):
+    def getMedianValuesList(self, choice):
         if choice == 1:
-            return self.averageTB.values()
+            return self.medianTB.values()
         elif choice == 2:
-            return self.averageGDP.values()
+            return self.medianGDP.values()
         elif choice == 3:
-            return self.averageCO2.values()
+            return self.medianCO2.values()
         else:
-            return self.averagePD.values()
+            return self.medianPD.values()
              
     def fillYears(self):
         """ Loads up the year range used for
@@ -91,26 +100,22 @@ class Continent(object):
         years = yearsFile.readline()
         self.yearList = years.split(' ')
         for y in self.yearList:  
-            self.averageTB[y] = 0
-            self.totalTB[y] = 0
-            self.averageGDP[y] = 0
-            self.totalGDP[y] = 0
-            self.averageCO2[y] = 0
-            self.totalCO2[y] = 0
-            self.averagePD[y] = 0
-            self.totalPD[y] = 0             
+            self.medianTB[y] = 0
+            self.valuesTB[y] = []
+            self.medianGDP[y] = 0
+            self.valuesGDP[y] = []
+            self.medianCO2[y] = 0
+            self.valuesCO2[y] = []
+            self.medianPD[y] = 0
+            self.valuesPD[y] = []           
         yearsFile.close()
     
     def printStats(self):
         print("Countries in this continent:", [c.getName() for c in self.countries])
-        print("Avg TB:", self.averageTB)
-        print("Total TB:", self.totalTB)
-        print("Avg GDP:", self.averageGDP)
-        print("Total GDP:", self.totalGDP)
-        print("Avg CO2:", self.averageCO2)
-        print("Total CO2:", self.totalCO2)
-        print("Avg PD:", self.averagePD)
-        print("Total PD:", self.totalPD)
+        print("Median TB:", self.medianTB)
+        print("Median GDP:", self.medianGDP)
+        print("Median CO2:", self.medianCO2)
+        print("Median PD:", self.medianPD)
     
     def getStatisticNames():
         return ["TB", "GDP", "CO2", "PD"]
