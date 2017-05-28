@@ -34,8 +34,16 @@ scale = 1
 ESC = 27
 
 # Data
-years = ['2013', '2012', '2011', '2010', '2009', '2008', '2007', '2006', '2005', '2004']
-continentNames = ["Europe", "Africa", "Asia", "North America", "Oceania", "South America"]
+years = ['2013', '2012', '2011', '2010', '2009', '2008', '2007', '2006', 
+         '2005', '2004']
+continentNames = ["Europe", "Africa", "Asia", "North America", "Oceania", 
+                  "South America"]
+rotationalPositions = {"Europe":(0, 0), "Africa":(0, -90), "Asia":(0, 180), 
+                       "North America":(-90, 0), "Oceania":(0, 90), 
+                       "South America":(90, 90)}
+locationPositions = {(0, 0):"Europe", (0, -90):"Africa", (0, 180):"Asia", 
+                       (-90, 0):"North America", (0, 90):"Oceania", 
+                       (90, 90):"South America"}
 allData = []
 texturesTB = {}
 texturesGDP = {}
@@ -83,6 +91,34 @@ ZOOM_IN_ATTEMPT = "Attempting to zoom in..."
 ZOOM_OUT_ATTEMPT = "Attempting to zoom out..."
 ZOOM_IN_LIMIT = "Can't zoom in any further!"
 ZOOM_OUT_LIMIT = "Can't zoom out any further!"
+
+# Right click menu resources
+def selectAfrica():
+    fixateOnContinent("Africa")
+
+def selectAsia():
+    fixateOnContinent("Asia")
+
+def selectEurope():
+    fixateOnContinent("Europe")
+
+def selectNorthAmerica():
+    fixateOnContinent("North America")
+
+def selectOceania():
+    fixateOnContinent("Oceania")
+
+def selectSouthAmerica():
+    fixateOnContinent("South America")
+    
+def continentMenu(item):
+    options[item]()
+    return 0
+
+africaItem, asiaItem, europeItem, naItem, oceaniaItem, saItem = list(range(6))
+options = {africaItem:selectAfrica, asiaItem:selectAsia, 
+           europeItem:selectEurope, naItem:selectNorthAmerica,
+           oceaniaItem:selectOceania, saItem:selectSouthAmerica}
 
 #
 # IMAGE AND TEXTURE GENERATION
@@ -345,18 +381,22 @@ def rotationControls(key, x, y):
     if key == GLUT_KEY_UP:
         # Tilt up by 10 degrees
         tiltAmount += TILT
+        printAngles()
         refreshDisplay()
     elif key == GLUT_KEY_DOWN:
         # Tilt down by 10 degrees
         tiltAmount -= TILT
+        printAngles()
         refreshDisplay()
     elif key == GLUT_KEY_LEFT:
         # Pan to right by 10 degrees
         panAmount += PAN
+        printAngles()
         refreshDisplay()
     elif key == GLUT_KEY_RIGHT:
         # Pan to left by 10 degrees
         panAmount -= PAN
+        printAngles()
         refreshDisplay()
         
 def mouseClicks(button, state, x, y):
@@ -430,7 +470,7 @@ def drawDisplay():
     # Prepare to draw
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
-    glTranslatef(-1, 0, -6)
+    glTranslatef(0, 0, -6)
     glTranslate(0, 0, scaleFactor) # Zooming in and out
     glRotated(tiltAmount, 1, 0, 0) # Tilting
     glRotated(panAmount, 0, 1, 0) # Panning
@@ -462,16 +502,27 @@ def refreshDrawing():
     makeTextureSelection()
     drawDisplay()
     
+def printAngles():
+    print("Tilt:", tiltAmount, "Pan:", panAmount)
+
+def fixateOnContinent(continent):
+    """
+        When a continent is selected, the cube rotates to show off said
+        continent directly.
+    """
+    global panAmount, tiltAmount
+    tiltAmount, panAmount = rotationalPositions[continent]
+    printAngles()
+    refreshDisplay()
+
+
+
 #
 # PROGRAM STARTING POINT
 # 
 def main():
-    global windowHandle
-    global initialWidth
-    global initialHeight
-    global initialXPosition
-    global initialYPosition
-    global programTitle
+    global windowHandle, initialWidth, initialHeight
+    global initialXPosition, initialYPosition, programTitle
     
     try: 
         # Start up GLUT
@@ -480,13 +531,23 @@ def main():
         glutInitWindowSize(initialWidth, initialHeight)
         glutInitWindowPosition(initialXPosition, initialYPosition)
         windowHandle = glutCreateWindow(programTitle)
-    
+        
+        # Set up direct navigation menu
+        glutCreateMenu(continentMenu)
+        glutAddMenuEntry("Africa", africaItem)
+        glutAddMenuEntry("Asia", asiaItem)
+        glutAddMenuEntry("Europe", europeItem)
+        glutAddMenuEntry("North America", naItem)
+        glutAddMenuEntry("Oceania", oceaniaItem)
+        glutAddMenuEntry("South America", saItem)
+        glutAttachMenu(GLUT_RIGHT_BUTTON)
+        
         # Set up display, idle, resizing and mouse and keyboard handling functions
         glutDisplayFunc(drawDisplay)
         glutIdleFunc(drawDisplay)
         glutReshapeFunc(resizeWindow)
         glutKeyboardFunc(keyPresses)
-        glutMouseFunc(mouseClicks)
+        #glutMouseFunc(mouseClicks)
         glutSpecialFunc(rotationControls) # For non-ASCII keys (i.e. arrow keys)
     except:
         print(START_ERROR)
@@ -494,6 +555,7 @@ def main():
     
     # Initialise OpenGL and run program 
     startGL(initialWidth, initialHeight)
+    printAngles()
     print(WINDOW_OPEN)
     print(WELCOME)
     glutMainLoop()
