@@ -41,9 +41,17 @@ continentNames = ["Europe", "Africa", "Asia", "North America", "Oceania",
 rotationalPositions = {"Europe":(0, 0), "Africa":(0, -90), "Asia":(0, 180), 
                        "North America":(-90, 0), "Oceania":(0, 90), 
                        "South America":(90, 90)}
-locationPositions = {(0, 0):"Europe", (0, -90):"Africa", (0, 180):"Asia", 
-                       (-90, 0):"North America", (0, 90):"Oceania", 
-                       (90, 90):"South America"}
+locationPositions = {(0, 0):"Europe", (180, 180):"Europe", (-180, -180):"Europe",
+                     (-180, 180):"Europe", (180, -180):"Europe", (0, -90):"Africa", 
+                     (180, 90):"Africa", (-180, 90):"Africa", (0, 180):"Asia", 
+                     (180, 0):"Asia", (0, -180):"Asia", (-180, 0):"Asia", 
+                     (-90, 0):"North America", (-90, -90):"North America", 
+                     (-90, -180):"North America", (-90, 180):"North America",
+                     (-90, 90):"North America", (0, 90):"Oceania", (-180, 90):"Oceania", 
+                     (180, -90):"Oceania", (-180, -90):"Oceania", 
+                     (90, 90):"South America", (90, 0):"South America", 
+                     (90, -90):"South America", (90, 180):"South America", 
+                     (90, -180):"South America"}
 allData = []
 texturesTB = {}
 texturesGDP = {}
@@ -281,6 +289,13 @@ def setCurrentValue():
             currentValue = c.getAverageValue(selectedYear, dataTypes[selectedDataType])
             return
 
+def setDisplayedContinentText():
+    global selectedContinent, locationPositions
+    try:
+        selectedContinent = locationPositions[(tiltAmount, panAmount)]
+    except:
+        return
+
 #
 # pyOpenGL SETUP
 #
@@ -289,7 +304,7 @@ def startGL(width, height):
         Load continent data and textures and configure settings for 
         background colour, depth testing, blending and shading models.
     """
-    global allData
+    global allData, locationPositions
     
     # Load all numerical data for continents
     print(DATA_LOADING)
@@ -303,6 +318,7 @@ def startGL(width, height):
     print(DONE)
     
     setCurrentValue()
+    setDisplayedContinentText()
     
     # Display setting configuration
     glClearColor(0, 0, 0, 0)
@@ -417,21 +433,33 @@ def rotationControls(key, x, y):
     if key == GLUT_KEY_UP:
         # Tilt up by 10 degrees
         tiltAmount += TILT
+        if tiltAmount > 180:
+            tiltAmount = 180
+        setDisplayedContinentText()
         printAngles()
         refreshDisplay()
     elif key == GLUT_KEY_DOWN:
         # Tilt down by 10 degrees
         tiltAmount -= TILT
+        if tiltAmount < -180:
+            tiltAmount = -180
+        setDisplayedContinentText()
         printAngles()
         refreshDisplay()
     elif key == GLUT_KEY_LEFT:
         # Pan to right by 10 degrees
         panAmount += PAN
+        if panAmount > 180:
+            panAmount = 180
+        setDisplayedContinentText()
         printAngles()
         refreshDisplay()
     elif key == GLUT_KEY_RIGHT:
         # Pan to left by 10 degrees
         panAmount -= PAN
+        if panAmount < -180:
+            panAmount = -180
+        setDisplayedContinentText()
         printAngles()
         refreshDisplay()
 
@@ -563,6 +591,7 @@ def refreshDisplay():
     """
     makeTextureSelection()
     setCurrentValue()
+    setDisplayedContinentText()
     drawDisplay()
     
 def printAngles():
