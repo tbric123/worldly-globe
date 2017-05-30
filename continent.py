@@ -132,9 +132,6 @@ class Continent(object):
         else:
             xDiff = self.maxPD - self.minPD
             xSample = self.maxPD
-        print("Max:", self.getMaxValue(choice))
-        print("Min:", self.getMinValue(choice))
-        print("Gradient:", yDiff / xDiff)
         
         ySample = y2
         m = yDiff / xDiff # Gradient

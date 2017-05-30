@@ -58,6 +58,8 @@ texturesGDP = {}
 texturesCO2 = {}
 texturesPD = {}
 currentValue = 0
+currentGradient = 0
+currentIntercept = 0
 
 # Image file handling
 BMP = ".bmp"
@@ -315,13 +317,13 @@ def setArrowPosition():
         value.
     """
     global currentValue, currentArrowPosition, selectedContinent
+    global currentIntercept, currentGradient
     for c in allData:
         if c.getName() == selectedContinent:
             
-            m, c = c.calculateGradientAndIntercept(dataTypes[selectedDataType], 
-                                           bottomInterval, topInterval)           
-            currentArrowPosition = currentValue * m + c
-            print("Arrow Position:", currentArrowPosition)
+            currentGradient, currentIntercept = c.calculateGradientAndIntercept(
+                    dataTypes[selectedDataType], bottomInterval, topInterval)           
+            currentArrowPosition = currentValue * currentGradient + currentIntercept
             return
     
 #
@@ -547,6 +549,7 @@ def drawColourBar():
     height = 2
 
     i = 0
+    
     while i <= height:
         drawBarLine(width, i, 1 - i)
         i += 0.005 
@@ -688,7 +691,7 @@ def main():
         glutInitWindowSize(initialWidth, initialHeight)
         glutInitWindowPosition(initialXPosition, initialYPosition)
         windowHandle = glutCreateWindow(programTitle)
-        #glutFullScreen()
+        glutFullScreen()
         
         # Set up direct navigation menu
         glutCreateMenu(continentMenu)

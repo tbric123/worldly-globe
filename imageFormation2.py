@@ -3,17 +3,18 @@ from continent import Continent
 
 class ContinentImageCreator(object):
     
-    def calculateColourGradient(allValues):
+    def calculateColourGradientAndIntercept(con, choice):
         # Treat as a linear function: y = mx + c
-        x1 = min(allValues)
-        x2 = max(allValues)
+        x1 = con.getMinValue(choice)
+        x2 = con.getMaxValue(choice)
         y1 = 255
         y2 = 0
-        m = (y2 - y1) / (x2 - x1)
+        m = (y2 - y1) / (x2 - x1) # Gradient
+        c = y1 - m * x1 # Use an arbitrary x, y pair for y-intercept
         
-        return m
+        return m, c
     
-    def calculateGreenChannel(xValue, m):
+    def calculateGreenChannel(xValue, m, c):
         """
             Calculate the value used for the green colour
             channel that will result in an image colour between
@@ -22,7 +23,7 @@ class ContinentImageCreator(object):
         """
         
         # No floats for colour channels
-        return int(m * xValue + 255) 
+        return int(m * xValue + c) 
     
     
     def generateImage(value, originalImage, savedImage):
@@ -53,12 +54,14 @@ class ContinentImageCreator(object):
         for f in dataTypeFunctions:
             valuesList = continent.getMedianValuesList(f)
             print(dataTypeNames[f - 1], ":", valuesList)
-            gradient = ContinentImageCreator.calculateColourGradient(valuesList)
+            
+            gradient, intercept = ContinentImageCreator.calculateColourGradientAndIntercept(continent, f)
+            
             for y in years:
                 savedName = "maps/" + continent.getName() + dataTypeNames[f - 1] + y + ".bmp"
                 value = continent.getMedianValue(y, f)
-                value = ContinentImageCreator.calculateGreenChannel(value, gradient)
-                ContinentImageCreator.generateImage(value, originalName, savedName)
+                colourValue = ContinentImageCreator.calculateGreenChannel(value, gradient, intercept)
+                ContinentImageCreator.generateImage(colourValue, originalName, savedName)
 
 if __name__ == "__main__":
     continentList = Continent.generateFullContinentList()    
