@@ -4,6 +4,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 from PIL.Image import *
+from math import *
 
 # My own modules
 from continent import Continent
@@ -100,6 +101,9 @@ topInterval = 2
 currentArrowPosition = 0
 
 # Lighting
+lightRange = 2
+lightTheta = 0
+lightPhi = 45
 
 # Console Messages
 IMAGE_NOT_FOUND = "An image couldn't be loaded - program will exit."
@@ -482,6 +486,18 @@ def rotationControls(key, x, y):
 # DRAWING ABILITIES
 #
 
+def adjustLighting():
+    r_xz = lightRange*cos(lightPhi*pi/180)
+    y = LightRange*sin(LightPhi*pi/180)
+    z = r_xz*cos(LightTheta*pi/180)
+    x = r_xz*sin(LightTheta*pi/180)
+
+    glLightfv( GL_LIGHT0, GL_DIFFUSE, GLfloat_3(1,1,1) )
+    glLightfv( GL_LIGHT0, GL_AMBIENT, GLfloat_3(0,0,0) )
+    glLightfv( GL_LIGHT0, GL_SPECULAR, GLfloat_3(1,1,1) )
+    glLightfv( GL_LIGHT0, GL_POSITION, GLfloat_4(x,y,z,1) )
+    glEnable( GL_LIGHT0)
+    
 def drawCubeFace(size):
     """
         Draw a face for the world cube
@@ -545,14 +561,22 @@ def drawColourBar():
     glColor4f(1, 1, 1, 1)
     
     glPushMatrix()
-    width = 0.5
-    height = 2
-
-    i = 0
     
-    while i <= height:
-        drawBarLine(width, i, 1 - i)
-        i += 0.005 
+    # Linear function for colour value vs. position of line drawn
+    cx1 = 1
+    cx2 = 0
+    cy1 = 0
+    cy2 = 2
+    m = (cy2 - cy1) / (cx2 - cx1)
+    c = cy1 - m * cx1
+    
+    width = 0.5 # Width of entire colour bar
+    
+    cv = 0
+    while cv <= 1:
+        colourPosition = m * cv + c
+        drawBarLine(width, colourPosition, cv)
+        cv += 1/255 - 0.0015 # Add constant to control gap between bar lines
         
     drawArrow(currentArrowPosition, width)
     glColor4f(1, 1, 1, 1)
