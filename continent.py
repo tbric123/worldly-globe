@@ -116,18 +116,30 @@ class Continent(object):
         else:
             return self.minPD
         
-    def calculateGradient(self, choice, y1, y2):
+    def calculateGradientAndIntercept(self, choice, y1, y2):
         yDiff = y2 - y1
         xDiff = 0
+        xSample = 0
         if choice == 1:
             xDiff = self.maxTB - self.minTB
+            xSample = self.maxTB
         elif choice == 2:
             xDiff = self.maxGDP - self.minGDP
+            xSample = self.maxGDP
         elif choice == 3:
             xDiff = self.maxCO2 - self.minCO2
+            xSample = self.maxCO2
         else:
             xDiff = self.maxPD - self.minPD
-        return yDiff / xDiff
+            xSample = self.maxPD
+        print("Max:", self.getMaxValue(choice))
+        print("Min:", self.getMinValue(choice))
+        print("Gradient:", yDiff / xDiff)
+        
+        ySample = y2
+        m = yDiff / xDiff # Gradient
+        c = ySample - (m * xSample) # Y-intercept
+        return (m, c)
         
     def getMedianValue(self, year, choice):
         if choice == 1:

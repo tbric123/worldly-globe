@@ -58,7 +58,6 @@ texturesGDP = {}
 texturesCO2 = {}
 texturesPD = {}
 currentValue = 0
-currentArrowPosition = 0
 
 # Image file handling
 BMP = ".bmp"
@@ -96,8 +95,9 @@ yTextPosC = yTextPosDT + 0.08
 # Colour bar settings
 bottomInterval = 0
 topInterval = 2
+currentArrowPosition = 0
 
-#
+# Lighting
 
 # Console Messages
 IMAGE_NOT_FOUND = "An image couldn't be loaded - program will exit."
@@ -289,6 +289,10 @@ def initialiseAllTextures():
     makeTextureSelection()
 
 def setCurrentValue():
+    """
+        Sets the current value based on the selected data
+        type, year and continent.
+    """
     global currentValue, allData, selectedContinent
     for c in allData:
         if c.getName() == selectedContinent:
@@ -296,6 +300,9 @@ def setCurrentValue():
             return
 
 def setDisplayedContinentText():
+    """
+        Sets the name of the continent that will be displayed on-screen.
+    """
     global selectedContinent, locationPositions
     try:
         selectedContinent = locationPositions[(tiltAmount, panAmount)]
@@ -303,13 +310,17 @@ def setDisplayedContinentText():
         return
 
 def setArrowPosition():
+    """
+        Sets the position of the arrow on the colour bar based on the current 
+        value.
+    """
     global currentValue, currentArrowPosition, selectedContinent
     for c in allData:
         if c.getName() == selectedContinent:
             
-            gradient = c.calculateGradient(dataTypes[selectedDataType], 
+            m, c = c.calculateGradientAndIntercept(dataTypes[selectedDataType], 
                                            bottomInterval, topInterval)           
-            currentArrowPosition = currentValue * gradient / 5
+            currentArrowPosition = currentValue * m + c
             print("Arrow Position:", currentArrowPosition)
             return
     
@@ -522,6 +533,10 @@ def drawWorldCube(textureIDs):
     glPopMatrix()
 
 def drawColourBar():
+    """
+        Draws a colour bar that will help show the range of values of a
+        selected continent and data type from yellow to red.
+    """
     glDisable(GL_TEXTURE_2D) 
     glLoadIdentity() 
     glTranslate(3, -1.5, -6)  
@@ -543,6 +558,10 @@ def drawColourBar():
     glPopMatrix()
 
 def drawBarLine(width, i, g):
+    """
+        Draws a straight line that will be a building block for the entire
+        colour bar.
+    """
     glColor4f(1, g, 0, 1)
     glBegin(GL_LINES)
     glVertex2f(0, i)
@@ -550,6 +569,10 @@ def drawBarLine(width, i, g):
     glEnd()
     
 def drawArrow(pos, width):
+    """
+        Draws an arrow next to the colour bar to indicate where the current
+        value sits in the value range.
+    """
     glColor4f(0, 1, 0, 1)
     glBegin(GL_LINES)
     glVertex2f(0, pos)
@@ -665,7 +688,7 @@ def main():
         glutInitWindowSize(initialWidth, initialHeight)
         glutInitWindowPosition(initialXPosition, initialYPosition)
         windowHandle = glutCreateWindow(programTitle)
-        glutFullScreen()
+        #glutFullScreen()
         
         # Set up direct navigation menu
         glutCreateMenu(continentMenu)
