@@ -58,6 +58,7 @@ texturesGDP = {}
 texturesCO2 = {}
 texturesPD = {}
 currentValue = 0
+currentArrowPosition = 0
 
 # Image file handling
 BMP = ".bmp"
@@ -68,7 +69,6 @@ TB = "TB"
 GDP = "GDP"
 CO2 = "CO2"
 PD = "PD"
-
 dataTypes = {TB:1, GDP:2, CO2:3, PD:4}
 units = {TB:"deaths/capita", GDP:"$US/capita", CO2:"tonnes/capita", 
          PD:"people/km^2"}
@@ -92,6 +92,12 @@ yTextPosDT = -2
 yTextPosY = yTextPosDT - 0.08
 yTextPosV = yTextPosY - 0.08
 yTextPosC = yTextPosDT + 0.08
+
+# Colour bar settings
+bottomInterval = 0
+topInterval = 2
+
+#
 
 # Console Messages
 IMAGE_NOT_FOUND = "An image couldn't be loaded - program will exit."
@@ -296,6 +302,17 @@ def setDisplayedContinentText():
     except:
         return
 
+def setArrowPosition():
+    global currentValue, currentArrowPosition, selectedContinent
+    for c in allData:
+        if c.getName() == selectedContinent:
+            
+            gradient = c.calculateGradient(dataTypes[selectedDataType], 
+                                           bottomInterval, topInterval)           
+            currentArrowPosition = currentValue * gradient / 5
+            print("Arrow Position:", currentArrowPosition)
+            return
+    
 #
 # pyOpenGL SETUP
 #
@@ -318,6 +335,7 @@ def startGL(width, height):
     print(DONE)
     
     setCurrentValue()
+    setArrowPosition()
     setDisplayedContinentText()
     
     # Display setting configuration
@@ -473,6 +491,12 @@ def drawWorldCube(textureIDs):
     """
     
     size = 2
+    glLoadIdentity() 
+    glTranslatef(0, 0, -6)
+    glTranslate(0, 0, scaleFactor) # Zooming in and out
+    glRotated(tiltAmount, 1, 0, 0) # Tilting
+    glRotated(panAmount, 0, 1, 0) # Panning 
+    glEnable(GL_TEXTURE_2D)
     glPushMatrix()
     
     faceIndex = 1
@@ -497,6 +521,52 @@ def drawWorldCube(textureIDs):
         
     glPopMatrix()
 
+def drawColourBar():
+    glDisable(GL_TEXTURE_2D) 
+    glLoadIdentity() 
+    glTranslate(3, -1.5, -6)  
+    glColor4f(1, 1, 1, 1)
+    
+    glPushMatrix()
+    width = 0.5
+    height = 2
+
+    i = 0
+    while i <= height:
+        drawBarLine(width, i, 1 - i)
+        i += 0.005 
+        
+    drawArrow(currentArrowPosition, width)
+    glColor4f(1, 1, 1, 1)
+    
+    glEnable(GL_TEXTURE_2D)
+    glPopMatrix()
+
+def drawBarLine(width, i, g):
+    glColor4f(1, g, 0, 1)
+    glBegin(GL_LINES)
+    glVertex2f(0, i)
+    glVertex2f(width/2, i)
+    glEnd()
+    
+def drawArrow(pos, width):
+    glColor4f(0, 1, 0, 1)
+    glBegin(GL_LINES)
+    glVertex2f(0, pos)
+    glVertex2f(-width/2, pos)
+    glEnd()
+    
+    glBegin(GL_LINES)
+    glVertex2f(0, pos)
+    glVertex2f(-0.1, 0.1 + pos)
+    glEnd()
+    
+    glBegin(GL_LINES)
+    glVertex2f(0, pos)
+    glVertex2f(-0.1, -0.1 + pos)
+    glEnd()
+    glColor4f(1, 1, 1, 1) # Otherwise textures can't display properly!
+    
 def drawSelectionText():
     """
         Draws text on the screen to show the selected data type, year and
@@ -528,9 +598,7 @@ def drawSelectionText():
     glRasterPos2f(xTextPos, yTextPosV)
     for c in "Value: " + str(currentValue) + " " + units[selectedDataType]:
         glutBitmapCharacter(font, ord(c))
-    
-    # Re-enable texturing
-    glEnable(GL_TEXTURE_2D)
+      
     glPopMatrix()
     
 def drawDisplay():
@@ -541,20 +609,15 @@ def drawDisplay():
     
     # Prepare to draw
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)    
-    glLoadIdentity() 
-    glTranslatef(0, 0, -6)
-    glTranslate(0, 0, scaleFactor) # Zooming in and out
-    glRotated(tiltAmount, 1, 0, 0) # Tilting
-    glRotated(panAmount, 0, 1, 0) # Panning 
-    glEnable(GL_TEXTURE_2D)
-    
+     
     # Start drawing the cube
+    drawSelectionText()
+    drawColourBar()
+    
     glPushMatrix()
     drawWorldCube(selectedContinentTextureIDs)
     glPopMatrix()
-    
-    drawSelectionText()
-    
+     
     # Make drawing appear on screen
     glutSwapBuffers()
 
@@ -575,6 +638,7 @@ def refreshDisplay():
     """
     makeTextureSelection()
     setCurrentValue()
+    setArrowPosition()
     setDisplayedContinentText()
     drawDisplay()
     

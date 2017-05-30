@@ -11,15 +11,27 @@ class Continent(object):
         
         self.medianTB = {}
         self.valuesTB = {}
+        self.maxTB = 0
+        self.minTB = 0  
+        self.gradientTB = 0
         
         self.medianGDP = {}
         self.valuesGDP = {}
+        self.maxGDP = 0
+        self.minGDP = 0
+        self.gradientGDP = 0
         
         self.medianCO2 = {}
         self.valuesCO2 = {}
+        self.maxCO2 = 0
+        self.minCO2 = 0
+        self.gradientCO2 = 0
         
         self.medianPD = {}
         self.valuesPD = {}
+        self.maxPD = 0 
+        self.minPD = 0
+        self.gradientPD = 0
         
         self.yearList = []
         self.fillYears()
@@ -38,13 +50,13 @@ class Continent(object):
         self.countries.append(country)
         countryCount = len(self.countries)
         
-        # Totals calculation
+        # Median calculations
         for y in self.yearList:
             valsTB = self.valuesTB[y]
             valsTB.append(country.getStatValue(1, y))
             self.valuesTB[y] = valsTB
             self.medianTB[y] = round(statistics.median(self.valuesTB[y]), 3)
-            
+
             valsGDP = self.valuesGDP[y]
             valsGDP.append(country.getStatValue(2, y))
             self.valuesGDP[y] = valsGDP
@@ -59,7 +71,19 @@ class Continent(object):
             valsPD.append(country.getStatValue(4, y))
             self.valuesPD[y] = valsPD
             self.medianPD[y] = round(statistics.median(self.valuesPD[y]), 3)
-               
+        
+        # Max values
+        self.maxTB = max(self.medianTB.values())
+        self.maxGDP = max(self.medianGDP.values())
+        self.maxCO2 = max(self.medianCO2.values())
+        self.maxPD = max(self.medianPD.values())
+        
+        # Min values
+        self.minTB = min(self.medianTB.values())
+        self.minGDP = min(self.medianGDP.values())
+        self.minCO2 = min(self.medianCO2.values())
+        self.minPD = min(self.medianPD.values())
+        
     def getMedianTB(self, year):
         return self.medianTB[year]
     
@@ -72,6 +96,39 @@ class Continent(object):
     def getMedianPD(self, year):
         return self.medianPD[year]
     
+    def getMaxValue(self, choice):
+        if choice == 1:
+            return self.maxTB
+        elif choice == 2:
+            return self.maxGDP
+        elif choice == 3:
+            return self.maxCO2
+        else:
+            return self.maxPD
+    
+    def getMinValue(self, choice):
+        if choice == 1:
+            return self.minTB
+        elif choice == 2:
+            return self.minGDP
+        elif choice == 3:
+            return self.minCO2
+        else:
+            return self.minPD
+        
+    def calculateGradient(self, choice, y1, y2):
+        yDiff = y2 - y1
+        xDiff = 0
+        if choice == 1:
+            xDiff = self.maxTB - self.minTB
+        elif choice == 2:
+            xDiff = self.maxGDP - self.minGDP
+        elif choice == 3:
+            xDiff = self.maxCO2 - self.minCO2
+        else:
+            xDiff = self.maxPD - self.minPD
+        return yDiff / xDiff
+        
     def getMedianValue(self, year, choice):
         if choice == 1:
             return self.getMedianTB(year)
@@ -107,7 +164,7 @@ class Continent(object):
             self.medianCO2[y] = 0
             self.valuesCO2[y] = []
             self.medianPD[y] = 0
-            self.valuesPD[y] = []           
+            self.valuesPD[y] = []
         yearsFile.close()
     
     def printStats(self):
